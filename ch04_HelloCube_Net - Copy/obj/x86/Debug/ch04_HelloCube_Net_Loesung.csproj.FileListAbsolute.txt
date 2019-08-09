@@ -1,0 +1,8 @@
+F:\github\SLProject\apps\exercices\ch04_HelloCube_Net\obj\x86\Debug\ch03_HelloCube_Net_Loesung.Properties.Resources.resources
+F:\github\SLProject\apps\exercices\ch04_HelloCube_Net\obj\x86\Debug\ch04_HelloCube_Net_Loesung.csproj.GenerateResource.cache
+F:\github\SLProject\apps\exercices\ch04_HelloCube_Net\obj\x86\Debug\ch04_HelloCube_Net_Loesung.csproj.CoreCompileInputs.cache
+F:\github\SLProject\apps\exercices\ch04_HelloCube_Net\obj\x86\Debug\ch04_HelloCube_Net_Loesung.csprojAssemblyReference.cache
+F:\github\SLProject\apps\exercices\_bin-cg11_vc10\ch03_HelloCube_Net_Loesung.exe
+F:\github\SLProject\apps\exercices\_bin-cg11_vc10\ch03_HelloCube_Net_Loesung.pdb
+F:\github\SLProject\apps\exercices\ch04_HelloCube_Net\obj\x86\Debug\ch03_HelloCube_Net_Loesung.exe
+F:\github\SLProject\apps\exercices\ch04_HelloCube_Net\obj\x86\Debug\ch03_HelloCube_Net_Loesung.pdb

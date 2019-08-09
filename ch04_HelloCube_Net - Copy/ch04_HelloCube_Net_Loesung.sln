@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2026
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ch04_HelloCube_Net_Loesung", "ch04_HelloCube_Net_Loesung.csproj", "{280585A5-504D-416E-9D6D-7245EA79DB41}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{280585A5-504D-416E-9D6D-7245EA79DB41}.Debug|x86.ActiveCfg = Debug|x86
+		{280585A5-504D-416E-9D6D-7245EA79DB41}.Debug|x86.Build.0 = Debug|x86
+		{280585A5-504D-416E-9D6D-7245EA79DB41}.Release|x86.ActiveCfg = Release|x86
+		{280585A5-504D-416E-9D6D-7245EA79DB41}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AC588288-8DBA-4F64-BEA0-9BFB139B276E}
+	EndGlobalSection
+EndGlobal
