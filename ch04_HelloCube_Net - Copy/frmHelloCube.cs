@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ch03_HelloCube_Net;
+using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
@@ -14,6 +15,7 @@ public partial class frmHelloCube : Form
    private SLVec3f[] m_v;                 // array for vertices for the cube
    private SLVec3f   preTrackBallVec;         //trackball start
    private SLVec3f   currTrackBallVec;       // current position on track ball
+    private SLVec3f m_cam;
    private float     m_camZ;              // z-distance of camera
    private float     m_rotAngleUp;          // angle of cube rotation
    private float     m_rotAngleSide;          // angle of cube rotation
@@ -53,7 +55,7 @@ public partial class frmHelloCube : Form
       m_camZ = -4;      // backwards movement of the camera
       zoomForce = m_camZ;
 
-
+        m_cam = new SLVec3f(0, 0, m_camZ);
       preTrackBallVec = new SLVec3f();
       currTrackBallVec = new SLVec3f();
 
@@ -94,8 +96,9 @@ public partial class frmHelloCube : Form
                                 ClientRectangle.Width, 
                                 ClientRectangle.Height, 
                                 0, 1);
-       
-      this.Invalidate();
+
+
+        this.Invalidate();
    }
 
    /// <summary>
@@ -107,7 +110,7 @@ public partial class frmHelloCube : Form
       m_viewMatrix.Identity();
    
       // view transform: move the coordinate system away from the camera
-      m_viewMatrix.Translate(0, 0, m_camZ);
+      m_viewMatrix.Translate(m_cam);
    
       // model transform: rotate the coordinate system increasingly
       m_modelMatrix.Identity();
@@ -134,82 +137,112 @@ public partial class frmHelloCube : Form
       }
 
 
+        Graphics g = e.Graphics;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
 
-      Graphics g = e.Graphics;
-      g.SmoothingMode = SmoothingMode.AntiAlias;
-
-        int leftIndex = 0;
-        SLVec3f leftVector = v2[leftIndex];
-        int rightIndex = 0;
-        SLVec3f rightVector = v2[rightIndex];
-
-        for (int i = 0; i < v2.Length; i++)
-        {
-            if(leftVector.x > v2[i].x)
-            {
-                leftVector = v2[i];
-                leftIndex = i;
-            }
-            if(rightVector.x < v2[i].x)
-            {
-                rightVector = v2[i];
-                rightIndex = i;
-            }
-        }
+        // float frontPol1 = ((v2[1].x - v2[0].x) * (v2[2].y - v2[0].y)) -((v2[2].x - v2[0].x) * (v2[1].y - v2[0].y)) ; 
 
 
-
-
-        // back
-        g.DrawPolygon(Pens.Green, new PointF[] { new PointF(v2[4].x, v2[4].y), new PointF(v2[5].x, v2[5].y), new PointF(v2[6].x, v2[6].y) });
-        g.DrawPolygon(Pens.Green, new PointF[] { new PointF(v2[6].x, v2[6].y), new PointF(v2[7].x, v2[7].y), new PointF(v2[4].x, v2[4].y) });
         
-        // right side
-        g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[1].x, v2[1].y), new PointF(v2[5].x, v2[5].y), new PointF(v2[6].x, v2[6].y) });
-        g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[6].x, v2[6].y), new PointF(v2[2].x, v2[2].y), new PointF(v2[1].x, v2[1].y) });
-
-        g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[1].x, v2[1].y), new PointF(v2[5].x, v2[5].y), new PointF(v2[6].x, v2[6].y) });
-        g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[6].x, v2[6].y), new PointF(v2[2].x, v2[2].y), new PointF(v2[1].x, v2[1].y) });
 
 
+        // if the triangle is frontig forward
+        SLVec3f frontPol1 = SLVec3f.CrossProduct((v2[1] - v2[0]), (v2[2] - v2[0]));
+        SLVec3f backPol1 = SLVec3f.CrossProduct((v2[4] - v2[5]), (v2[6] - v2[5]));
+        SLVec3f rightPol1 = SLVec3f.CrossProduct((v2[5] - v2[1]), (v2[6] - v2[1]));
+        SLVec3f leftPol1 = SLVec3f.CrossProduct((v2[3] - v2[0]), (v2[4] - v2[0]));
+        SLVec3f topPol1 = SLVec3f.CrossProduct((v2[2] - v2[3]), (v2[6] - v2[3]));
+        SLVec3f bottomPol1 = SLVec3f.CrossProduct((v2[1] - v2[5]), (v2[0] - v2[5]));
+
+        // if the triangle in front of the camera
+        bool visibleFront = SLVec3f.DotProduct(frontPol1,m_cam) >= 0;
+        bool visibleBack = SLVec3f.DotProduct( backPol1,m_cam) >= 0;
+        bool visibleRight = SLVec3f.DotProduct(rightPol1,m_cam) >= 0;
+        bool visibleLeft = SLVec3f.DotProduct(leftPol1,m_cam) >= 0;
+        bool visibleTop = SLVec3f.DotProduct(topPol1,m_cam)  >= 0;
+        bool visibleBottom = SLVec3f.DotProduct(bottomPol1,m_cam) >= 0;
 
 
-
-        // top
-        g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[3].x, v2[3].y), new PointF(v2[2].x, v2[2].y), new PointF(v2[6].x, v2[6].y) });
-        g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[6].x, v2[6].y), new PointF(v2[7].x, v2[7].y), new PointF(v2[3].x, v2[3].y) });
-
-        g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[3].x, v2[3].y), new PointF(v2[2].x, v2[2].y), new PointF(v2[6].x, v2[6].y) });
-        g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[6].x, v2[6].y), new PointF(v2[7].x, v2[7].y), new PointF(v2[3].x, v2[3].y) });
-
-
-
-        //  left side
-        g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[0].x, v2[0].y), new PointF(v2[7].x, v2[7].y), new PointF(v2[3].x, v2[3].y) });
-        g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[7].x, v2[7].y), new PointF(v2[4].x, v2[4].y), new PointF(v2[0].x, v2[0].y) });
-
-        g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[0].x, v2[0].y), new PointF(v2[7].x, v2[7].y), new PointF(v2[3].x, v2[3].y) });
-        g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[7].x, v2[7].y), new PointF(v2[4].x, v2[4].y), new PointF(v2[0].x, v2[0].y) });
+        BmpG bmp = new BmpG(ClientRectangle.Width, ClientRectangle.Height);
 
 
 
 
-        //botom
-        g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[5].x, v2[5].y), new PointF(v2[1].x, v2[1].y), new PointF(v2[0].x, v2[0].y) });
-        g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[0].x, v2[0].y), new PointF(v2[4].x, v2[4].y), new PointF(v2[5].x, v2[5].y) });
+        //if (visibleFront)
+        //{
+        //    // front
+        //    g.FillPolygon(new SolidBrush(Color.Red), new PointF[] { new PointF(v2[0].x, v2[0].y), new PointF(v2[1].x, v2[1].y), new PointF(v2[2].x, v2[2].y) });
+        //    g.FillPolygon(new SolidBrush(Color.Red), new PointF[] { new PointF(v2[2].x, v2[2].y), new PointF(v2[3].x, v2[3].y), new PointF(v2[0].x, v2[0].y) });
 
-        g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[5].x, v2[5].y), new PointF(v2[1].x, v2[1].y), new PointF(v2[0].x, v2[0].y) });
-        g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[0].x, v2[0].y), new PointF(v2[4].x, v2[4].y), new PointF(v2[5].x, v2[5].y) });
+        //    g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[0].x, v2[0].y), new PointF(v2[1].x, v2[1].y), new PointF(v2[2].x, v2[2].y) });
+        //    g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[2].x, v2[2].y), new PointF(v2[3].x, v2[3].y), new PointF(v2[0].x, v2[0].y) });
+        //}
+
+
+
+        ////float frontPol1 = ((v2[1].x - v2[0].x) * (v2[2].y - v2[0].y))   - ((v2[2].x - v2[0].x) * (v2[1].y - v2[0].y));
+        //if (visibleBack)
+        //{
+        //    g.FillPolygon(new SolidBrush(Color.Green), new PointF[] { new PointF(v2[5].x, v2[5].y), new PointF(v2[4].x, v2[4].y), new PointF(v2[6].x, v2[6].y) });
+        //    g.FillPolygon(new SolidBrush(Color.Green), new PointF[] { new PointF(v2[6].x, v2[6].y), new PointF(v2[4].x, v2[4].y), new PointF(v2[7].x, v2[7].y) });
+        //}
+        //// back
+
+        //if (visibleRight)
+        //{
+        //    // right side
+        //    g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[1].x, v2[1].y), new PointF(v2[5].x, v2[5].y), new PointF(v2[6].x, v2[6].y) });
+        //    g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[6].x, v2[6].y), new PointF(v2[2].x, v2[2].y), new PointF(v2[1].x, v2[1].y) });
+
+        //    g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[1].x, v2[1].y), new PointF(v2[5].x, v2[5].y), new PointF(v2[6].x, v2[6].y) });
+        //    g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[6].x, v2[6].y), new PointF(v2[2].x, v2[2].y), new PointF(v2[1].x, v2[1].y) });
+        //}
 
 
 
 
-        // front
-        g.FillPolygon(new SolidBrush(Color.Red), new PointF[] { new PointF(v2[0].x, v2[0].y), new PointF(v2[1].x, v2[1].y), new PointF(v2[2].x, v2[2].y) });
-        g.FillPolygon(new SolidBrush(Color.Red), new PointF[] { new PointF(v2[2].x, v2[2].y), new PointF(v2[3].x, v2[3].y), new PointF(v2[0].x, v2[0].y) });
 
-        g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[0].x, v2[0].y), new PointF(v2[1].x, v2[1].y), new PointF(v2[2].x, v2[2].y) });
-        g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[2].x, v2[2].y), new PointF(v2[3].x, v2[3].y), new PointF(v2[0].x, v2[0].y) });
+        //if (visibleTop)
+        //{
+        //    // top
+        //    g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[3].x, v2[3].y), new PointF(v2[2].x, v2[2].y), new PointF(v2[6].x, v2[6].y) });
+        //    g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[6].x, v2[6].y), new PointF(v2[7].x, v2[7].y), new PointF(v2[3].x, v2[3].y) });
+
+        //    g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[3].x, v2[3].y), new PointF(v2[2].x, v2[2].y), new PointF(v2[6].x, v2[6].y) });
+        //    g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[6].x, v2[6].y), new PointF(v2[7].x, v2[7].y), new PointF(v2[3].x, v2[3].y) });
+        //}
+
+
+
+
+        //if (visibleLeft)
+        //{
+        //    //  left side
+        //    g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[0].x, v2[0].y), new PointF(v2[3].x, v2[3].y), new PointF(v2[4].x, v2[4].y) });
+        //    g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[4].x, v2[4].y), new PointF(v2[3].x, v2[3].y), new PointF(v2[7].x, v2[7].y) });
+
+        //    g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[0].x, v2[0].y), new PointF(v2[3].x, v2[3].y), new PointF(v2[4].x, v2[4].y) });
+        //    g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[4].x, v2[4].y), new PointF(v2[3].x, v2[3].y), new PointF(v2[7].x, v2[7].y) });
+        //}
+
+
+
+
+        //if (visibleBottom)
+        //{
+        //    //botom
+        //    g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[5].x, v2[5].y), new PointF(v2[1].x, v2[1].y), new PointF(v2[0].x, v2[0].y) });
+        //    g.FillPolygon(new SolidBrush(Color.Blue), new PointF[] { new PointF(v2[4].x, v2[4].y), new PointF(v2[5].x, v2[5].y), new PointF(v2[0].x, v2[0].y) });
+
+        //    g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[5].x, v2[5].y), new PointF(v2[1].x, v2[1].y), new PointF(v2[0].x, v2[0].y) });
+        //    g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[4].x, v2[4].y), new PointF(v2[5].x, v2[5].y), new PointF(v2[0].x, v2[0].y) });
+        //}
+
+
+
+
+
+
 
 
         /*
@@ -229,8 +262,19 @@ public partial class frmHelloCube : Form
         g.DrawLine(Pens.Blue, v2[2].x, v2[2].y, v2[6].x, v2[6].y);
         g.DrawLine(Pens.Blue, v2[3].x, v2[3].y, v2[7].x, v2[7].y); */
 
+        bmp.DrawLine(v2[0], v2[1], Color.Green);
+        bmp.DrawLine(v2[1], v2[2], Color.Green);
+        bmp.DrawLine(v2[2], v2[3], Color.Green);
+        Console.WriteLine( v2[1] + " " + ClientRectangle.Height);
+
+
+        g.DrawImageUnscaled(bmp.Result(), 0, 0);
+
+
         float r = trackBallRadi();
         g.DrawEllipse(Pens.White, (ClientRectangle.Width / 2) - r, (ClientRectangle.Height / 2) - r, r*2, r*2);
+
+        
      
       // Tell the system that the window should be repaint again
       this.Invalidate();
@@ -317,6 +361,7 @@ public partial class frmHelloCube : Form
         {
             zoomForce += ((float)e.Delta / Math.Abs(e.Delta)) / 10;
             m_camZ = zoomForce;
+            m_cam.z = zoomForce;
         }
         Console.WriteLine(m_camZ);
         

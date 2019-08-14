@@ -47,6 +47,6 @@ partial class frmHelloCube
 
    }
 
-   #endregion
+    #endregion
 }
 
