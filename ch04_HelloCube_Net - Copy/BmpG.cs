@@ -36,18 +36,18 @@ namespace ch03_HelloCube_Net
         private void DrawLine(SLVec3f start, SLVec3f end, SLVec3f start_color, SLVec3f end_color, ref List<Point> points, ref List<SLVec3f> colors)
         {
 
-            this.data        = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
-            stride           = data.Stride;
-            
-            double distance  = 0;
 
-
-            SLVec3f newColor = new SLVec3f();
 
             #region setup
 
-            // round values
+            this.data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
+            stride = data.Stride;
 
+            // color calculations
+            double distance = 0;
+            SLVec3f newColor = new SLVec3f();
+
+            // round values
             RoundVector(ref start);
             RoundVector(ref end);
 
@@ -68,10 +68,15 @@ namespace ch03_HelloCube_Net
             int lastX        = (int)end.x * stepX;
             int lastY        =  (int)end.y * stepY;
 
-
-
-            if (dx < 0) { dx = -dx; stepX = -stepX; stepDX = -1; }
-            if (dy < 0) { dy = -dy; stepY = -stride; stepDY = -1; }
+            // if the slopes are negative
+            if (dx < 0)
+            {
+                invertValues(ref dx, ref stepX, ref stepDX);
+            }
+            if (dy < 0)
+            {
+                invertValues(ref dy, ref stepY, ref stepDY);
+            }
 
 
             double lenght    = Math.Sqrt(Math.Pow(end.x - start.x, 2) + Math.Pow(end.y - start.y, 2));
@@ -117,7 +122,6 @@ namespace ch03_HelloCube_Net
                         points.Add(new Point(posX, posY));
                         colors.Add(newColor);
 
-                        
 
                         if (D < 0)
                         {
@@ -129,6 +133,7 @@ namespace ch03_HelloCube_Net
                             activeY += stepY;
                             posY    += stepDY;
                         }
+
                         activeX += stepX;
                         posX    += stepDX;
                     }
@@ -186,7 +191,8 @@ namespace ch03_HelloCube_Net
 
             }
             bmp.UnlockBits(data);
-        } 
+        }
+
 
 
         public void DrawPolygon(SLVec3f v0,SLVec3f c0, SLVec3f v1,SLVec3f c1, SLVec3f v2, SLVec3f c2)
@@ -213,13 +219,12 @@ namespace ch03_HelloCube_Net
             DrawLine(v1, v2, c1, c2, ref allPoints, ref allColors);
             DrawLine(v2, v0, c2, c0, ref allPoints, ref allColors);
 
-            List<SLVec4f>[] allXonY = new List<SLVec4f>[maxY + 1 - minY];
+            List<SLVec4f>[] allXonY       = new List<SLVec4f>[maxY + 1 - minY];
             List<SLVec4f>[] allSortedXonY = new List<SLVec4f>[maxY + 1 - minY];
 
             for (int s = 0; s < allXonY.Length; s++)
             {
                 allXonY[s] = new List<SLVec4f>();
-
             }
 
             SLVec3f vC;
@@ -233,27 +238,35 @@ namespace ch03_HelloCube_Net
             #endregion
 
 
-            int anzahlX = 0;
-            int x1 = bmp.Width;
-            int x2 = 0;
-            int maxId = 0;
+            int anzahlX    = 0;
+            int x1         = bmp.Width;
+            int x2         = 0;
+            int maxId      = 0;
             SLVec3f startC = new SLVec3f();
-            SLVec3f endC = new SLVec3f();
+            SLVec3f endC   = new SLVec3f();
 
             for (int indexY = 0; indexY < allXonY.Length; indexY++)
             {
                 anzahlX = allXonY[indexY].Count;
+
                 if (anzahlX == 0)
                 {
                     continue;
                 }
-                allSortedXonY[indexY] = allXonY[indexY].OrderBy(v => v.x).ToList<SLVec4f>();
-                maxId = anzahlX - 1;
 
-                x1 = (int)allSortedXonY[indexY][0].x;
-                x2 = (int)allSortedXonY[indexY][maxId].x;
-                startC.Set(allSortedXonY[indexY][0].y, allSortedXonY[indexY][0].z, allSortedXonY[indexY][0].w);
-                endC.Set(allSortedXonY[indexY][maxId].y, allSortedXonY[indexY][maxId].z, allSortedXonY[indexY][maxId].w);
+                allSortedXonY[indexY] = allXonY[indexY].OrderBy(v => v.x).ToList<SLVec4f>();
+                maxId                 = anzahlX - 1;
+
+                x1                    = (int) allSortedXonY[ indexY ][ 0 ].x;
+                x2                    = (int) allSortedXonY[ indexY ][ maxId ].x;
+
+                startC.Set( allSortedXonY[ indexY] [ 0 ].y,
+                            allSortedXonY[ indexY ][ 0 ].z, 
+                            allSortedXonY[ indexY ][ 0 ].w);
+
+                endC.Set( allSortedXonY[ indexY ][ maxId ].y, 
+                          allSortedXonY[ indexY ][ maxId ].z, 
+                          allSortedXonY[ indexY ][ maxId ].w);
 
 
                 draw1DLine(x1, x2, indexY + minY,startC,endC);
@@ -275,31 +288,28 @@ namespace ch03_HelloCube_Net
         /// <param name="endColor"></param>
         private void draw1DLine(int x1, int x2, int y, SLVec3f startColor, SLVec3f endColor)
         {
-            this.data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
-            stride = data.Stride;
 
- 
+            
+            this.data          = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
+            stride             = data.Stride;
 
-            int stepX = 3, stepY = stride * y, increX = 1;
-            int activeX = x1;
-            SLVec3f newColor = new SLVec3f();
+
+            int stepX          = 3, stepY = stride * y, increX = 1;
+            int activeX        = x1;
+
+            // Color calculation setup
+            SLVec3f newColor   = new SLVec3f();
             //SLVec3f startColor = new SLVec3f();
             //SLVec3f endColor = new SLVec3f();
-            double distance, length;
-            length = Math.Abs(activeX - x2);
+            double distance;
+            double length      = Math.Abs(activeX - x2);
 
 
 
-
+            
             int activePosition = (x1 * stepX) + stepY;
+            int endPosition    = x2 * stepX + stepY;
 
-            int endPosition = x2 * stepX + stepY;
-
-            if (x1 > x2)
-            {
-                stepX = -stepX;
-                increX = -increX;
-            }
 
             unsafe
             {
@@ -311,21 +321,20 @@ namespace ch03_HelloCube_Net
                 while (activePosition != endPosition)
                 {
 
-                    distance = activeX - x1;
-                    float ratio = (float)(distance / length);
-                    if (ratio > 1) { ratio = 1; }
-                    newColor = startColor + ratio * (endColor - startColor);
-                    // interpolate!!!!
-                    ptr[activePosition] = (byte)newColor.z;
+                    distance                = activeX - x1;
+                    float ratio             = (float)(distance / length);
+                    if (ratio > 1)          { ratio = 1; }
+                    newColor                = startColor + ratio * (endColor - startColor);
+                    ptr[activePosition]     = (byte)newColor.z;
                     ptr[activePosition + 1] = (byte)newColor.y;
                     ptr[activePosition + 2] = (byte)newColor.x;
 
-                    activePosition += stepX;
-                    activeX += increX;
+                    activePosition          += stepX;
+                    activeX                 += increX;
                 }
-                ptr[endPosition] = (byte)endColor.z;
-                ptr[endPosition + 1] = (byte)endColor.y;
-                ptr[endPosition + 2] = (byte)endColor.x;
+                ptr[endPosition]            = (byte)endColor.z;
+                ptr[endPosition + 1]        = (byte)endColor.y;
+                ptr[endPosition + 2]        = (byte)endColor.x;
 
             }
             bmp.UnlockBits(data);
@@ -343,16 +352,16 @@ namespace ch03_HelloCube_Net
             vec.y = (float)Math.Round(vec.y, 0);
             vec.z = (float)Math.Round(vec.z, 0);
         }
-        private void switchValues(ref int slope, ref int mulitpilcator, ref int counter)
+        private void invertValues(ref int slope, ref int mulitpilcator, ref int counter)
         {
-            slope = -slope;
-
+            slope         = -slope;
+            mulitpilcator = -mulitpilcator;
+            counter       = -counter;
         }
 
 
         public Bitmap Result()
         {
-           
             return bmp;
         }
     }
