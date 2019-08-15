@@ -8,8 +8,12 @@ using System.Windows;
 
 namespace ch03_HelloCube_Net
 {
+    /// <summary>
+    /// With out of bound messurment!
+    /// </summary>
     class BmpG
     {
+
         private Bitmap bmp;
         private BitmapData data;
         private int stride;
