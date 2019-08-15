@@ -11,21 +11,29 @@ namespace ch03_HelloCube_Net
 {
     class BmpG
     {
+        #region values
         private Bitmap bmp;
         private BitmapData data;
         private int stride;
-        private SLVec3f color_green = new SLVec3f(0, 255, 0);
-        private SLVec3f color_blue = new SLVec3f(0, 0, 255);
-        private SLVec3f color_red = new SLVec3f(255, 0, 0);
+        #endregion
 
+        /// <summary>
+        /// Creates a Bitmap with set height and width
+        /// </summary>
+        /// <param name="width">Width of the bitmap</param>
+        /// <param name="height">Height of the bitmap</param>
         public BmpG(int width, int height)
         {
             this.bmp = new Bitmap(width, height);
-
-
         }
         
-
+        /// <summary>
+        /// Draws Line in the Bitmap
+        /// </summary>
+        /// <param name="start">starting vector</param>
+        /// <param name="end">ending vector</param>
+        /// <param name="start_color">starting color of starting vector</param>
+        /// <param name="end_color">ending color of ending vector</param>
         public void DrawLine(SLVec3f start, SLVec3f end, SLVec3f start_color, SLVec3f end_color)
         {
             List<Point> noPointsNeeded      = new List<Point>();
@@ -33,9 +41,17 @@ namespace ch03_HelloCube_Net
             DrawLine(start, end, start_color, end_color, ref noPointsNeeded, ref noColorListNeeded);
         }
 
+        /// <summary>
+        /// Draws Line in the Bitmap and sets up the Primitives
+        /// </summary>
+        /// <param name="start">starting vector</param>
+        /// <param name="end">ending vector</param>
+        /// <param name="start_color">starting color of starting vector</param>
+        /// <param name="end_color">ending color of ending vector</param>
+        /// <param name="points">saves the coordinates of the line</param>
+        /// <param name="colors">saves the colors of the line</param>
         private void DrawLine(SLVec3f start, SLVec3f end, SLVec3f start_color, SLVec3f end_color, ref List<Point> points, ref List<SLVec3f> colors)
         {
-
 
 
             #region setup
@@ -51,20 +67,23 @@ namespace ch03_HelloCube_Net
             RoundVector(ref start);
             RoundVector(ref end);
 
+            // calculates slopes
             int dx           = (int)(end.x - start.x);
             int dy           = (int)(end.y - start.y);
 
-
+            // steps size for calculation in ptr array
             int stepX = 3,   stepY = stride;
             int stepDX = 1,  stepDY = 1;
 
-
+            // positions to know the coordinates of the active position
             int posY         = (int)start.y;
             int posX         = (int)start.x;
             
+            // transformed starting coordinates for the ptr array
             int activeY      = (int)start.y * stride;
             int activeX      = (int)start.x * stepX;
 
+            // transformed ending coordinates for the ptr array
             int lastX        = (int)end.x * stepX;
             int lastY        =  (int)end.y * stepY;
 
@@ -78,7 +97,8 @@ namespace ch03_HelloCube_Net
                 invertValues(ref dy, ref stepY, ref stepDY);
             }
 
-
+            //                                             ___________________________
+            // distance between start and end vector      √ (x1 - x0)^2 + (y1 - y0)^2
             double lenght    = Math.Sqrt(Math.Pow(end.x - start.x, 2) + Math.Pow(end.y - start.y, 2));
 
 
@@ -87,7 +107,7 @@ namespace ch03_HelloCube_Net
 
             unsafe
             {
-
+                // gets the first pixel adress in the bitmap
                 byte* ptr = (byte*)data.Scan0;
 
                 if (dx > dy)
@@ -194,19 +214,37 @@ namespace ch03_HelloCube_Net
         }
 
 
-
+        /// <summary>
+        /// Draws an fill in a Polygon counterclockwise
+        /// </summary>
+        /// <param name="v0">first vector</param>
+        /// <param name="c0">color from vector 0 </param>
+        /// <param name="v1">second vector</param>
+        /// <param name="c1">color from vector 1 </param>
+        /// <param name="v2">third and last vector</param>
+        /// <param name="c2">color4 from vector 2 </param>
         public void DrawPolygon(SLVec3f v0,SLVec3f c0, SLVec3f v1,SLVec3f c1, SLVec3f v2, SLVec3f c2)
         {
+            #region values
             int minX, minY, maxX, maxY;
             List<Point> allPoints = new List<Point>();
             List<SLVec3f> allColors = new List<SLVec3f>();
-           
-
-            #region calculate setup
 
             float[] xPoints = { v0.x, v1.x, v2.x };
             float[] yPoints = { v0.y, v1.y, v2.y };
 
+            int anzahlX = 0;
+            int x1 = bmp.Width;
+            int x2 = 0;
+            int maxId = 0;
+            SLVec3f startC = new SLVec3f();
+            SLVec3f endC = new SLVec3f();
+
+            #endregion
+
+            #region calculate setup
+
+            // calculates the square around the triangle
             minX            = (int)xPoints.Min();
             minY            = (int)yPoints.Min();
 
@@ -214,23 +252,25 @@ namespace ch03_HelloCube_Net
             maxY            = (int)Math.Round(yPoints.Max(),0);
 
            
-
+            // Draws the line between the 3 vectors and saves the primitves
             DrawLine(v0, v1, c0, c1, ref allPoints, ref allColors);
             DrawLine(v1, v2, c1, c2, ref allPoints, ref allColors);
             DrawLine(v2, v0, c2, c0, ref allPoints, ref allColors);
 
+            // creates list on the size of the square (boundries)
             List<SLVec4f>[] allXonY       = new List<SLVec4f>[maxY + 1 - minY];
             List<SLVec4f>[] allSortedXonY = new List<SLVec4f>[maxY + 1 - minY];
 
+            // füllt die Liste auf (ist performance technisch besser)
             for (int s = 0; s < allXonY.Length; s++)
             {
                 allXonY[s] = new List<SLVec4f>();
             }
 
+            // fügt alle x auf der gleichen y achse in einer Liste hinzu die der gleiche index hat wie y
             SLVec3f vC;
             for (int i = 0; i < allPoints.Count; i++)
             {
-
                 vC = allColors[i];
                 allXonY[allPoints[i].Y - minY].Add(new SLVec4f(allPoints[i].X, vC.x, vC.y, vC.z));
             }
@@ -238,13 +278,8 @@ namespace ch03_HelloCube_Net
             #endregion
 
 
-            int anzahlX    = 0;
-            int x1         = bmp.Width;
-            int x2         = 0;
-            int maxId      = 0;
-            SLVec3f startC = new SLVec3f();
-            SLVec3f endC   = new SLVec3f();
 
+            // geht durch jedes y axis hindurch
             for (int indexY = 0; indexY < allXonY.Length; indexY++)
             {
                 anzahlX = allXonY[indexY].Count;
@@ -254,12 +289,15 @@ namespace ch03_HelloCube_Net
                     continue;
                 }
 
+                // sortiert alle x der reihe nach
                 allSortedXonY[indexY] = allXonY[indexY].OrderBy(v => v.x).ToList<SLVec4f>();
                 maxId                 = anzahlX - 1;
 
+                // setzt start x(1) und end x(2)
                 x1                    = (int) allSortedXonY[ indexY ][ 0 ].x;
                 x2                    = (int) allSortedXonY[ indexY ][ maxId ].x;
 
+                // setzt start farbe und end farbe
                 startC.Set( allSortedXonY[ indexY] [ 0 ].y,
                             allSortedXonY[ indexY ][ 0 ].z, 
                             allSortedXonY[ indexY ][ 0 ].w);
@@ -269,23 +307,23 @@ namespace ch03_HelloCube_Net
                           allSortedXonY[ indexY ][ maxId ].w);
 
 
+                // zeichnet die line auf der höhe vom index Y
                 draw1DLine(x1, x2, indexY + minY,startC,endC);
 
-                x1 = bmp.Width;
-                x2 = 0;
             }
 
 
 
         }
+
         /// <summary>
-        /// 
+        /// Draws line only on one y axis
         /// </summary>
-        /// <param name="x1"> der linke (kleinere) punkt</param>
-        /// <param name="x2"> der rechte (grössere) punkt</param>
-        /// <param name="y"></param>
-        /// <param name="startColor"></param>
-        /// <param name="endColor"></param>
+        /// <param name="x1"> left point</param>
+        /// <param name="x2"> right point</param>
+        /// <param name="y"> y axis on wich the line will be drawn</param>
+        /// <param name="startColor"> color from x1 </param>
+        /// <param name="endColor"> color from x2 </param>
         private void draw1DLine(int x1, int x2, int y, SLVec3f startColor, SLVec3f endColor)
         {
 
@@ -341,6 +379,7 @@ namespace ch03_HelloCube_Net
 
 
         }
+
         /// <summary>
         /// rounds up all values to 0 decimals
         /// </summary>
@@ -352,6 +391,8 @@ namespace ch03_HelloCube_Net
             vec.y = (float)Math.Round(vec.y, 0);
             vec.z = (float)Math.Round(vec.z, 0);
         }
+
+        // inverses the values in the parameters to it negative.
         private void invertValues(ref int slope, ref int mulitpilcator, ref int counter)
         {
             slope         = -slope;
@@ -359,7 +400,10 @@ namespace ch03_HelloCube_Net
             counter       = -counter;
         }
 
-
+        /// <summary>
+        /// Gives the Result of all actions performent by BmpG
+        /// </summary>
+        /// <returns>Bitmap with all the Graphics in it</returns>
         public Bitmap Result()
         {
             return bmp;
