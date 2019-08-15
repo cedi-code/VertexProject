@@ -55,20 +55,18 @@ namespace ch03_HelloCube_Net
             int dy           = (int)(end.y - start.y);
 
 
-            int stepX = 3, stepY = stride;
-            int stepDX = 1, stepDY = 1;
+            int stepX = 3,   stepY = stride;
+            int stepDX = 1,  stepDY = 1;
 
 
-            int maxY = (bmp.Height - 1) * stride, maxX = (bmp.Width - 1) * stepX;
-
-            // längen berechnung
-            int posY         = (int) start.y, posX = (int)start.x;
+            int posY         = (int)start.y;
+            int posX         = (int)start.x;
             
             int activeY      = (int)start.y * stride;
             int activeX      = (int)start.x * stepX;
 
-            int lastX = SetLastPos(ref end.x, bmp.Width, stepX);
-            int lastY = SetLastPos(ref end.y, bmp.Height, stepY);
+            int lastX        = (int)end.x * stepX;
+            int lastY        =  (int)end.y * stepY;
 
 
 
@@ -96,31 +94,30 @@ namespace ch03_HelloCube_Net
                     while (activeX != lastX)
                     {
 
-                        if (activeY < maxY && activeX + activeY > 0)
-                        {
+                        
 
-                            #region color calculation
-                            //                                             ___________________________
-                            // distance between start and active pixel    √ (x1 - x0)^2 + (y1 - y0)^2
-                            distance                   =  Math.Sqrt(  (Math.Pow(posX - start.x,2) + Math.Pow(posY - start.y,2)));
-                            // distance percent between the whole line
-                            float ratio                = (float)(distance / lenght);
-                            if(ratio > 1)              { ratio = 1; }
-                            // gradient between start color and end color
-                            newColor                   = start_color + ratio * (end_color - start_color);
-                            #endregion
+                        #region color calculation
+                        //                                             ___________________________
+                        // distance between start and active pixel    √ (x1 - x0)^2 + (y1 - y0)^2
+                        distance                   =  Math.Sqrt(  (Math.Pow(posX - start.x,2) + Math.Pow(posY - start.y,2)));
+                        // distance percent between the whole line
+                        float ratio                = (float)(distance / lenght);
+                        if(ratio > 1)              { ratio = 1; }
+                        // gradient between start color and end color
+                        newColor                   = start_color + ratio * (end_color - start_color);
+                        #endregion
 
-                            // set active pixel the rgb (r=x, g=y, b=z)
-                            ptr[activeX + activeY]     = (byte)(newColor.z);
-                            ptr[activeX + activeY + 1] = (byte)(newColor.y);
-                            ptr[activeX + activeY + 2] = (byte)(newColor.x);
+                        // set active pixel the rgb (r=x, g=y, b=z)
+                        ptr[activeX + activeY]     = (byte)(newColor.z);
+                        ptr[activeX + activeY + 1] = (byte)(newColor.y);
+                        ptr[activeX + activeY + 2] = (byte)(newColor.x);
 
 
-                            // saves points to create the primitives
-                            points.Add(new Point(posX, posY));
-                            colors.Add(newColor);
+                        // saves points to create the primitives
+                        points.Add(new Point(posX, posY));
+                        colors.Add(newColor);
 
-                        }
+                        
 
                         if (D < 0)
                         {
@@ -145,24 +142,24 @@ namespace ch03_HelloCube_Net
                     while (activeY != lastY)
                     {
 
-                        // todo schon vorher überprüfen ob y oder x null sein könnte
-                        if (activeY < maxY && activeX + activeY > 0)
-                        {
-                            //                                             ___________________________
-                            // distance between start and active pixel    √ (x1 - x0)^2 + (y1 - y0)^2
-                            distance                   = Math.Sqrt((Math.Pow(posX - start.x, 2) + Math.Pow(posY - start.y, 2)));
-                            float ratio                = (float)(distance / lenght);
-                            if (ratio > 1)             { ratio = 1; }
-                            newColor                   = start_color + ratio * (end_color - start_color);
+                        #region color calculation
+                        //                                             ___________________________
+                        // distance between start and active pixel    √ (x1 - x0)^2 + (y1 - y0)^2
+                        distance = Math.Sqrt((Math.Pow(posX - start.x, 2) + Math.Pow(posY - start.y, 2)));
+                        float ratio                = (float)(distance / lenght);
+                        if (ratio > 1)             { ratio = 1; }
+                        newColor                   = start_color + ratio * (end_color - start_color);
+                        #endregion
 
-                            ptr[activeX + activeY]     = (byte)(newColor.z);
-                            ptr[activeX + activeY + 1] = (byte)(newColor.y);
-                            ptr[activeX + activeY + 2] = (byte)(newColor.x);
+                        // set active pixel the rgb (r=x, g=y, b=z)
+                        ptr[activeX + activeY]     = (byte)(newColor.z);
+                        ptr[activeX + activeY + 1] = (byte)(newColor.y);
+                        ptr[activeX + activeY + 2] = (byte)(newColor.x);
 
-                            points.Add(new Point(posX, posY));
-                            colors.Add(newColor);
+                        // saves points to create the primitives
+                        points.Add(new Point(posX, posY));
+                        colors.Add(newColor);
 
-                        }
                         activeY += stepY;
                         posY    += stepDY;
 
@@ -180,15 +177,12 @@ namespace ch03_HelloCube_Net
                     }
                 }
                 // set last pixel 
-                if (lastX + lastY > 0)
-                {
-                    ptr[lastX + lastY]     = (byte)(end_color.z);
-                    ptr[lastX + lastY + 1] = (byte)(end_color.y);
-                    ptr[lastX + lastY + 2] = (byte)(end_color.x);
+                ptr[lastX + lastY]     = (byte)(end_color.z);
+                ptr[lastX + lastY + 1] = (byte)(end_color.y);
+                ptr[lastX + lastY + 2] = (byte)(end_color.x);
 
-                    points.Add(new Point((int)end.x, (int)end.y));
-                    colors.Add(end_color);
-                }
+                points.Add(new Point((int)end.x, (int)end.y));
+                colors.Add(end_color);
 
             }
             bmp.UnlockBits(data);
@@ -207,11 +201,11 @@ namespace ch03_HelloCube_Net
             float[] xPoints = { v0.x, v1.x, v2.x };
             float[] yPoints = { v0.y, v1.y, v2.y };
 
-            minX = (int)xPoints.Min();
-            minY = (int)yPoints.Min();
+            minX            = (int)xPoints.Min();
+            minY            = (int)yPoints.Min();
 
-            maxX = (int)Math.Round(xPoints.Max(),0);
-            maxY = (int)Math.Round(yPoints.Max(),0);
+            maxX            = (int)Math.Round(xPoints.Max(),0);
+            maxY            = (int)Math.Round(yPoints.Max(),0);
 
            
 
@@ -248,7 +242,6 @@ namespace ch03_HelloCube_Net
 
             for (int indexY = 0; indexY < allXonY.Length; indexY++)
             {
-                // plz fix this D:
                 anzahlX = allXonY[indexY].Count;
                 if (anzahlX == 0)
                 {
@@ -298,10 +291,8 @@ namespace ch03_HelloCube_Net
 
 
 
-            if (x1 < 0) { x1 = 0; }
             int activePosition = (x1 * stepX) + stepY;
 
-            if(x2 > bmp.Width) { x2 = bmp.Width; }
             int endPosition = x2 * stepX + stepY;
 
             if (x1 > x2)
@@ -332,31 +323,14 @@ namespace ch03_HelloCube_Net
                     activePosition += stepX;
                     activeX += increX;
                 }
-                //ptr[endPosition] = (byte)endColor.z;
-                //ptr[endPosition + 1] = (byte)endColor.y;
-                //ptr[endPosition + 2] = (byte)endColor.x;
+                ptr[endPosition] = (byte)endColor.z;
+                ptr[endPosition + 1] = (byte)endColor.y;
+                ptr[endPosition + 2] = (byte)endColor.x;
 
             }
             bmp.UnlockBits(data);
 
 
-        }
-        private void checkValues()
-        {
-
-        }
-        private int SetLastPos(ref float value, int bounds, int multiplier )
-        {
-            if (value > bounds)
-            {
-                value = bounds - 1;
-                return  (bounds - 1) * multiplier;
-                
-            }
-            else
-            {
-                return (int)(value) * multiplier;
-            }
         }
         /// <summary>
         /// rounds up all values to 0 decimals
@@ -368,6 +342,11 @@ namespace ch03_HelloCube_Net
             vec.x = (float)Math.Round(vec.x,0);
             vec.y = (float)Math.Round(vec.y, 0);
             vec.z = (float)Math.Round(vec.z, 0);
+        }
+        private void switchValues(ref int slope, ref int mulitpilcator, ref int counter)
+        {
+            slope = -slope;
+
         }
 
 

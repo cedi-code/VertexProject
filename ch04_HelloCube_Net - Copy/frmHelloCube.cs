@@ -56,7 +56,7 @@ public partial class frmHelloCube : Form
       m_v[6] = new SLVec3f( 0.5f, 0.5f,-0.5f); // back upper left
       m_v[7] = new SLVec3f(-0.5f, 0.5f,-0.5f); // back upper right
 
-      m_camZ = -4;      // backwards movement of the camera
+      m_camZ = -4.5f;      // backwards movement of the camera
       zoomForce = m_camZ;
 
         m_cam = new SLVec3f(0, 0, m_camZ);
@@ -239,15 +239,15 @@ public partial class frmHelloCube : Form
     private void frmHelloCube_MouseWheel(object sender, MouseEventArgs e)
    {
         // TODO cap on m_camZ setzen
-        if ((zoomForce <= -1f && zoomForce >= -10f) ||
-            ((float)e.Delta / Math.Abs(e.Delta) ==+1 && zoomForce <= -10f) ||
-            ((float)e.Delta / Math.Abs(e.Delta) == -1 && zoomForce >= -1f))
-        {
-            zoomForce += ((float)e.Delta / Math.Abs(e.Delta)) / 10;
-            m_camZ = zoomForce;
-            m_cam.z = zoomForce;
-        }
-        Console.WriteLine(m_camZ);
+        //if ((zoomForce <= -1f && zoomForce >= -10f) ||
+        //    ((float)e.Delta / Math.Abs(e.Delta) ==+1 && zoomForce <= -10f) ||
+        //    ((float)e.Delta / Math.Abs(e.Delta) == -1 && zoomForce >= -1f))
+        //{
+        //    zoomForce += ((float)e.Delta / Math.Abs(e.Delta)) / 10;
+        //    m_camZ = zoomForce;
+        //    m_cam.z = zoomForce;
+        //}
+        //Console.WriteLine(m_camZ);
         
        
 
