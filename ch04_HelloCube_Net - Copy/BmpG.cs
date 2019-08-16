@@ -15,6 +15,7 @@ namespace ch03_HelloCube_Net
         private Bitmap bmp;
         private BitmapData data;
         private int stride;
+        private float[,] zBuffer;
         #endregion
 
         /// <summary>
@@ -25,6 +26,15 @@ namespace ch03_HelloCube_Net
         public BmpG(int width, int height)
         {
             this.bmp = new Bitmap(width, height);
+            zBuffer = new float[height,width];
+            for(int h = 0; h < height-1; h++)
+            {
+                for(int w = 0; w < width -1; w++)
+                {
+                    zBuffer[h,w] = 9999.99f;
+                }
+            }
+
         }
         
         /// <summary>
@@ -36,7 +46,7 @@ namespace ch03_HelloCube_Net
         /// <param name="end_color">ending color of ending vector</param>
         public void DrawLine(SLVec3f start, SLVec3f end, SLVec3f start_color, SLVec3f end_color)
         {
-            List<Point> noPointsNeeded      = new List<Point>();
+            List<SLVec3f> noPointsNeeded      = new List<SLVec3f>();
             List<SLVec3f> noColorListNeeded = new List<SLVec3f>();
             DrawLine(start, end, start_color, end_color, ref noPointsNeeded, ref noColorListNeeded);
         }
@@ -50,7 +60,7 @@ namespace ch03_HelloCube_Net
         /// <param name="end_color">ending color of ending vector</param>
         /// <param name="points">saves the coordinates of the line</param>
         /// <param name="colors">saves the colors of the line</param>
-        private void DrawLine(SLVec3f start, SLVec3f end, SLVec3f start_color, SLVec3f end_color, ref List<Point> points, ref List<SLVec3f> colors)
+        private void DrawLine(SLVec3f start, SLVec3f end, SLVec3f start_color, SLVec3f end_color, ref List<SLVec3f> points, ref List<SLVec3f> colors)
         {
 
 
@@ -78,6 +88,9 @@ namespace ch03_HelloCube_Net
             // positions to know the coordinates of the active position
             int posY         = (int)start.y;
             int posX         = (int)start.x;
+            float posZ;
+            float startZ     = start.z;
+            float endZ       = end.z;
             
             // transformed starting coordinates for the ptr array
             int activeY      = (int)start.y * stride;
@@ -129,18 +142,27 @@ namespace ch03_HelloCube_Net
                         float ratio                = (float)(distance / lenght);
                         if(ratio > 1)              { ratio = 1; }
                         // gradient between start color and end color
-                        newColor                   = start_color + ratio * (end_color - start_color);
-                        #endregion
+                        newColor = start_color + ratio * (end_color - start_color);
 
-                        // set active pixel the rgb (r=x, g=y, b=z)
-                        ptr[activeX + activeY]     = (byte)(newColor.z);
-                        ptr[activeX + activeY + 1] = (byte)(newColor.y);
-                        ptr[activeX + activeY + 2] = (byte)(newColor.x);
+                        #endregion
+                        posZ = startZ + ratio * (endZ - startZ);
+                        if (zBuffer[posY, posX] > posZ)
+                        {
+                            zBuffer[posY, posX] = posZ;
+
+                            // set active pixel the rgb (r=x, g=y, b=z)
+                            ptr[activeX + activeY] = (byte)(newColor.z);
+                            ptr[activeX + activeY + 1] = (byte)(newColor.y);
+                            ptr[activeX + activeY + 2] = (byte)(newColor.x);
+                        }
+
 
 
                         // saves points to create the primitives
-                        points.Add(new Point(posX, posY));
+                        points.Add(new SLVec3f(posX, posY, posZ));
                         colors.Add(newColor);
+                        
+
 
 
                         if (D < 0)
@@ -151,7 +173,7 @@ namespace ch03_HelloCube_Net
                         {
                             D       += dNE;
                             activeY += stepY;
-                            posY    += stepDY;
+                            posY += stepDY;
                         }
 
                         activeX += stepX;
@@ -175,14 +197,18 @@ namespace ch03_HelloCube_Net
                         if (ratio > 1)             { ratio = 1; }
                         newColor                   = start_color + ratio * (end_color - start_color);
                         #endregion
-
-                        // set active pixel the rgb (r=x, g=y, b=z)
-                        ptr[activeX + activeY]     = (byte)(newColor.z);
-                        ptr[activeX + activeY + 1] = (byte)(newColor.y);
-                        ptr[activeX + activeY + 2] = (byte)(newColor.x);
+                        posZ = startZ + ratio * (endZ - startZ);
+                        if (zBuffer[posY, posX] > posZ)
+                        {
+                            zBuffer[posY, posX] = posZ;
+                            // set active pixel the rgb (r=x, g=y, b=z)
+                            ptr[activeX + activeY] = (byte)(newColor.z);
+                            ptr[activeX + activeY + 1] = (byte)(newColor.y);
+                            ptr[activeX + activeY + 2] = (byte)(newColor.x);
+                        }
 
                         // saves points to create the primitives
-                        points.Add(new Point(posX, posY));
+                        points.Add(new SLVec3f(posX,posY,posZ));
                         colors.Add(newColor);
 
                         activeY += stepY;
@@ -197,16 +223,21 @@ namespace ch03_HelloCube_Net
                             e       += dNE;
                             activeX += stepX;
                             posX    +=stepDX;
+
                         }
 
                     }
                 }
                 // set last pixel 
-                ptr[lastX + lastY]     = (byte)(end_color.z);
-                ptr[lastX + lastY + 1] = (byte)(end_color.y);
-                ptr[lastX + lastY + 2] = (byte)(end_color.x);
-
-                points.Add(new Point((int)end.x, (int)end.y));
+                if(zBuffer[posY, posX] < end.z)
+                {
+                    zBuffer[posY, posX] = end.z;
+                    ptr[lastX + lastY] = (byte)(end_color.z);
+                    ptr[lastX + lastY + 1] = (byte)(end_color.y);
+                    ptr[lastX + lastY + 2] = (byte)(end_color.x);
+                }
+  
+                points.Add(end);
                 colors.Add(end_color);
 
             }
@@ -227,7 +258,7 @@ namespace ch03_HelloCube_Net
         {
             #region values
             int minX, minY, maxX, maxY;
-            List<Point> allPoints = new List<Point>();
+            List<SLVec3f> allPoints = new List<SLVec3f>();
             List<SLVec3f> allColors = new List<SLVec3f>();
 
             float[] xPoints = { v0.x, v1.x, v2.x };
@@ -258,21 +289,20 @@ namespace ch03_HelloCube_Net
             DrawLine(v2, v0, c2, c0, ref allPoints, ref allColors);
 
             // creates list on the size of the square (boundries)
-            List<SLVec4f>[] allXonY       = new List<SLVec4f>[maxY + 1 - minY];
-            List<SLVec4f>[] allSortedXonY = new List<SLVec4f>[maxY + 1 - minY];
+            List<SL2Vec3f>[] allXonY       = new List<SL2Vec3f>[maxY + 1 - minY];
+            List<SL2Vec3f>[] allSortedXonY = new List<SL2Vec3f>[maxY + 1 - minY];
 
             // füllt die Liste auf (ist performance technisch besser)
             for (int s = 0; s < allXonY.Length; s++)
             {
-                allXonY[s] = new List<SLVec4f>();
+                allXonY[s] = new List<SL2Vec3f>();
             }
 
             // fügt alle x auf der gleichen y achse in einer Liste hinzu die der gleiche index hat wie y
-            SLVec3f vC;
             for (int i = 0; i < allPoints.Count; i++)
             {
-                vC = allColors[i];
-                allXonY[allPoints[i].Y - minY].Add(new SLVec4f(allPoints[i].X, vC.x, vC.y, vC.z));
+
+                allXonY[(int)allPoints[i].y - minY].Add(new SL2Vec3f( allPoints[i], allColors[i]));
             }
 
             #endregion
@@ -290,21 +320,21 @@ namespace ch03_HelloCube_Net
                 }
 
                 // sortiert alle x der reihe nach
-                allSortedXonY[indexY] = allXonY[indexY].OrderBy(v => v.x).ToList<SLVec4f>();
+                allSortedXonY[indexY] = allXonY[indexY].OrderBy(v => v.vectorPosition.x).ToList<SL2Vec3f>();
                 maxId                 = anzahlX - 1;
 
                 // setzt start x(1) und end x(2)
-                x1                    = (int) allSortedXonY[ indexY ][ 0 ].x;
-                x2                    = (int) allSortedXonY[ indexY ][ maxId ].x;
+                x1                    = (int) allSortedXonY[ indexY ][ 0 ].vectorPosition.x;
+                x2                    = (int) allSortedXonY[ indexY ][ maxId ].vectorPosition.x;
 
                 // setzt start farbe und end farbe
-                startC.Set( allSortedXonY[ indexY] [ 0 ].y,
-                            allSortedXonY[ indexY ][ 0 ].z, 
-                            allSortedXonY[ indexY ][ 0 ].w);
+                startC.Set( allSortedXonY[ indexY] [ 0 ].vectorColor.x,
+                            allSortedXonY[ indexY ][ 0 ].vectorColor.y, 
+                            allSortedXonY[ indexY ][ 0 ].vectorColor.z);
 
-                endC.Set( allSortedXonY[ indexY ][ maxId ].y, 
-                          allSortedXonY[ indexY ][ maxId ].z, 
-                          allSortedXonY[ indexY ][ maxId ].w);
+                endC.Set( allSortedXonY[ indexY ][ maxId ].vectorColor.x, 
+                          allSortedXonY[ indexY ][ maxId ].vectorColor.y, 
+                          allSortedXonY[ indexY ][ maxId ].vectorColor.z);
 
 
                 // zeichnet die line auf der höhe vom index Y
@@ -369,6 +399,7 @@ namespace ch03_HelloCube_Net
 
                     activePosition          += stepX;
                     activeX                 += increX;
+                    // zBuffer[y, activeX] = startZ + ratio * (endZ - startZ);
                 }
                 ptr[endPosition]            = (byte)endColor.z;
                 ptr[endPosition + 1]        = (byte)endColor.y;
@@ -389,7 +420,6 @@ namespace ch03_HelloCube_Net
         {
             vec.x = (float)Math.Round(vec.x,0);
             vec.y = (float)Math.Round(vec.y, 0);
-            vec.z = (float)Math.Round(vec.z, 0);
         }
 
         // inverses the values in the parameters to it negative.

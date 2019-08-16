@@ -27,6 +27,7 @@ public partial class frmHelloCube : Form
    private SLVec3f preCursorPosition;
    private SLVec3f cursorPosition;
    private bool isDown;
+    private BmpG bmpGraphics;
 
     private SLVec3f colorGreen = new SLVec3f(0, 255, 0);
     private SLVec3f colorBlue = new SLVec3f(0, 0, 255);
@@ -70,8 +71,7 @@ public partial class frmHelloCube : Form
       
       // Without double buffering it would flicker
       this.DoubleBuffered = true;
-
-      InitializeComponent();
+        InitializeComponent();
    }
 
    /// <summary>
@@ -83,8 +83,9 @@ public partial class frmHelloCube : Form
       Console.WriteLine("");
       Console.WriteLine("--------------------------------------------------------------");
       Console.WriteLine("Spinning cube without with .Net ...");
-   
-      frmHelloCube_Resize(null, null);
+
+
+        frmHelloCube_Resize(null, null);
    }
 
    /// <summary>
@@ -100,15 +101,16 @@ public partial class frmHelloCube : Form
                                 ClientRectangle.Width, 
                                 ClientRectangle.Height, 
                                 0, 1);
-
-
         this.Invalidate();
    }
+    private void frmHelloCube_Shown(Object sender, EventArgs e)
+    {
+    }
 
-   /// <summary>
-   /// The forms paint routine where all drawing happens.
-   /// </summary>
-   private void frmHelloCube_Paint(object sender, PaintEventArgs e)
+        /// <summary>
+        /// The forms paint routine where all drawing happens.
+        /// </summary>
+        private void frmHelloCube_Paint(object sender, PaintEventArgs e)
    {   
       // start with identity every frame
       m_viewMatrix.Identity();
@@ -123,7 +125,7 @@ public partial class frmHelloCube : Form
       m_modelMatrix.Multiply(m_rotationMatrix);
       // add new Rotations
       m_modelMatrix.Rotate(add_rotAngle, add_rotAxis);
-
+      
 
       m_modelMatrix.Scale(2, 2, 2);
       
@@ -145,14 +147,14 @@ public partial class frmHelloCube : Form
         g.SmoothingMode = SmoothingMode.AntiAlias;
 
 
-
-        BmpG bmp = new BmpG(ClientRectangle.Width, ClientRectangle.Height);
+        bmpGraphics = new BmpG(ClientRectangle.Width, ClientRectangle.Height);
 
         //drawCube(v2, bmp);
+        bmpGraphics.DrawPolygon(v2[0], colorRed, v2[1], colorGreen, v2[2], colorBlue);
 
-        bmp.DrawPolygon(v2[0], colorRed, v2[1], colorGreen, v2[2], colorBlue);
+        
 
-        g.DrawImageUnscaled(bmp.Result(), 0, 0);
+        g.DrawImageUnscaled(bmpGraphics.Result(), 0, 0);
 
 
         float r = trackBallRadi();
@@ -227,11 +229,13 @@ public partial class frmHelloCube : Form
         add_rotAxis.Set(SLVec3f.Zero);
 
         isDown = false;
+
         this.Invalidate();
+    
 
 
 
-        
+
     }
     
 
