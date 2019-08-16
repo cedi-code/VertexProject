@@ -3,6 +3,7 @@ using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 public partial class frmHelloCube : Form
 {
@@ -27,12 +28,22 @@ public partial class frmHelloCube : Form
    private SLVec3f preCursorPosition;
    private SLVec3f cursorPosition;
    private bool isDown;
-    private BmpG bmpGraphics;
+   private ZBuffer zBuffer;
+
 
     private SLVec3f colorGreen = new SLVec3f(0, 255, 0);
     private SLVec3f colorBlue = new SLVec3f(0, 0, 255);
     private SLVec3f colorRed = new SLVec3f(255, 0, 0);
 
+    private SLVec3f colorLightBlue = new SLVec3f(0, 255, 255);
+    private SLVec3f colorViolet = new SLVec3f(255, 0, 255);
+    private SLVec3f colorYellow = new SLVec3f(255, 255, 0);
+
+    private SLVec3f colorWhite = new SLVec3f(255, 255, 255);
+    private SLVec3f colorBlack = new SLVec3f(0, 0, 0);
+
+    private Stopwatch sw = new Stopwatch();
+    private int count = 0;
     #endregion
 
     /// <summary>
@@ -40,14 +51,14 @@ public partial class frmHelloCube : Form
     /// </summary>
     public frmHelloCube()
    {
-      // Create matrices
-      m_modelMatrix      = new SLMat4f();
+        // Create matrices
+        m_modelMatrix      = new SLMat4f();
       m_viewMatrix       = new SLMat4f();
       m_projectionMatrix = new SLMat4f();
       m_viewportMatrix   = new SLMat4f();
         m_rotationMatrix = new SLMat4f();
         // define the 8 vertices of a cube
-        m_v    = new SLVec3f[8];
+      m_v    = new SLVec3f[11];
       m_v[0] = new SLVec3f(-0.5f,-0.5f, 0.5f); // front lower left
       m_v[1] = new SLVec3f( 0.5f,-0.5f, 0.5f); // front lower right
       m_v[2] = new SLVec3f( 0.5f, 0.5f, 0.5f); // front upper right
@@ -57,7 +68,12 @@ public partial class frmHelloCube : Form
       m_v[6] = new SLVec3f( 0.5f, 0.5f,-0.5f); // back upper left
       m_v[7] = new SLVec3f(-0.5f, 0.5f,-0.5f); // back upper right
 
-      m_camZ = -4.5f;      // backwards movement of the camera
+
+      m_v[8] = new SLVec3f(-0.3f, -0.5f, 0.7f); // cross poly 0
+      m_v[9] = new SLVec3f(-0.3f, 0.5f, 0.7f); // cross poly 1
+      m_v[10] = new SLVec3f(0.5f, -0.5f, -0.5f); // cross poly 2
+
+        m_camZ = -4.5f;      // backwards movement of the camera
       zoomForce = m_camZ;
 
         m_cam = new SLVec3f(0, 0, m_camZ);
@@ -101,69 +117,79 @@ public partial class frmHelloCube : Form
                                 ClientRectangle.Width, 
                                 ClientRectangle.Height, 
                                 0, 1);
+        zBuffer = new ZBuffer(ClientRectangle.Width, ClientRectangle.Height);
+        sw.Start();
         this.Invalidate();
-   }
-    private void frmHelloCube_Shown(Object sender, EventArgs e)
-    {
     }
 
-        /// <summary>
-        /// The forms paint routine where all drawing happens.
-        /// </summary>
-        private void frmHelloCube_Paint(object sender, PaintEventArgs e)
-   {   
-      // start with identity every frame
-      m_viewMatrix.Identity();
-   
-      // view transform: move the coordinate system away from the camera
-      m_viewMatrix.Translate(m_cam);
-   
-      // model transform: rotate the coordinate system increasingly
-      m_modelMatrix.Identity();
 
-      // add previous Rotations
-      m_modelMatrix.Multiply(m_rotationMatrix);
-      // add new Rotations
-      m_modelMatrix.Rotate(add_rotAngle, add_rotAxis);
-      
+    /// <summary>
+    /// The forms paint routine where all drawing happens.
+    /// </summary>
+    private void frmHelloCube_Paint(object sender, PaintEventArgs e)
+    {
 
-      m_modelMatrix.Scale(2, 2, 2);
-      
-      // build combined matrix out of viewport, projection & modelview matrix
-      SLMat4f m = new SLMat4f();
-      m.Multiply(m_viewportMatrix); // ??
-      m.Multiply(m_projectionMatrix); // projektion
-      m.Multiply(m_viewMatrix); // kamera
-      m.Multiply(m_modelMatrix); // cube
+        zBuffer.Reset();
+        // start with identity every frame
+        m_viewMatrix.Identity();
 
-      // transform all vertices into screen space (x & y in pixels and z as the depth) 
-      SLVec3f[] v2 = new SLVec3f[8];
-      for (int i=0; i < m_v.Length; ++i)
-      {  v2[i] = m.Multiply(m_v[i]);
-      }
+        // view transform: move the coordinate system away from the camera
+        m_viewMatrix.Translate(m_cam);
+
+        // model transform: rotate the coordinate system increasingly
+        m_modelMatrix.Identity();
+
+        // add previous Rotations
+        m_modelMatrix.Multiply(m_rotationMatrix);
+        // add new Rotations
+        m_modelMatrix.Rotate(add_rotAngle, add_rotAxis);
+
+
+        m_modelMatrix.Scale(2, 2, 2);
+
+        // build combined matrix out of viewport, projection & modelview matrix
+        SLMat4f m = new SLMat4f();
+        m.Multiply(m_viewportMatrix); // ??
+        m.Multiply(m_projectionMatrix); // projektion
+        m.Multiply(m_viewMatrix); // kamera
+        m.Multiply(m_modelMatrix); // cube
+
+        // transform all vertices into screen space (x & y in pixels and z as the depth) 
+        SLVec3f[] v2 = new SLVec3f[11];
+        for (int i = 0; i < m_v.Length; ++i)
+        { v2[i] = m.Multiply(m_v[i]);
+        }
 
 
         Graphics g = e.Graphics;
         g.SmoothingMode = SmoothingMode.AntiAlias;
 
 
-        bmpGraphics = new BmpG(ClientRectangle.Width, ClientRectangle.Height);
+        using (BmpG bmpGraphics = new BmpG(ClientRectangle.Width, ClientRectangle.Height, zBuffer))
+        {
+            //drawCube(v2, bmpGraphics);
+            drawCrossPolys(v2, bmpGraphics);
 
-        //drawCube(v2, bmp);
-        bmpGraphics.DrawPolygon(v2[0], colorRed, v2[1], colorGreen, v2[2], colorBlue);
 
-        
+            g.DrawImageUnscaled(bmpGraphics.Result(), 0, 0);
+        }
 
-        g.DrawImageUnscaled(bmpGraphics.Result(), 0, 0);
 
 
         float r = trackBallRadi();
         g.DrawEllipse(Pens.White, (ClientRectangle.Width / 2) - r, (ClientRectangle.Height / 2) - r, r*2, r*2);
 
-        
-     
-      // Tell the system that the window should be repaint again
-      this.Invalidate();
+        if(count == 50)
+        {
+            sw.Stop();
+            Console.WriteLine("Elapsed={0}", sw.Elapsed);
+        }
+        count++;
+  
+
+
+        // Tell the system that the window should be repaint again
+        this.Invalidate();
    }
 
    /// <summary>Handles the mouse down event</summary>
@@ -184,8 +210,6 @@ public partial class frmHelloCube : Form
    {
         if(isDown)
         {
-
-            
 
             // cursor position
             currTrackBallVec.Set(trackBallVec(e.X, e.Y));
@@ -305,6 +329,11 @@ public partial class frmHelloCube : Form
         return angle * (180.0f / (float)Math.PI);
     }
 
+    private void drawCrossPolys(SLVec3f[] v2, BmpG bmp)
+    {
+        bmp.DrawPolygon(v2[0], colorRed, v2[1], colorGreen, v2[2], colorBlue);
+        bmp.DrawPolygon(v2[8], colorLightBlue, v2[9], colorViolet, v2[10], colorYellow);
+    }
     private void drawCube(SLVec3f[] v2, BmpG bmp)
     {
         // if the triangle is frontig forward
@@ -326,20 +355,20 @@ public partial class frmHelloCube : Form
         if (visibleFront)
         {
             // front
-            bmp.DrawPolygon(v2[0], colorRed, v2[1], colorBlue, v2[2], colorGreen);
-            bmp.DrawPolygon(v2[2], colorGreen, v2[3], colorBlue, v2[0], colorRed);
+            bmp.DrawPolygon(v2[0], colorWhite, v2[1], colorLightBlue, v2[2], colorBlue);
+            bmp.DrawPolygon(v2[2], colorBlue, v2[3], colorViolet, v2[0], colorWhite);
         }
         if (visibleBack)
         {
-            bmp.DrawPolygon(v2[5], colorRed, v2[4], colorBlue, v2[6], colorGreen);
-            bmp.DrawPolygon(v2[6], colorGreen, v2[4], colorBlue, v2[7], colorRed);
+            bmp.DrawPolygon(v2[5], colorGreen, v2[4], colorYellow, v2[6], colorBlack);
+            bmp.DrawPolygon(v2[6], colorBlack, v2[4], colorYellow, v2[7], colorRed);
             // back
         }
         if (visibleRight)
         {
             // right side
-            bmp.DrawPolygon(v2[1], colorBlue, v2[5], colorRed, v2[6], colorGreen);
-            bmp.DrawPolygon(v2[6], colorGreen, v2[2], colorGreen, v2[1], colorBlue);
+            bmp.DrawPolygon(v2[1], colorLightBlue, v2[5], colorGreen, v2[6], colorBlack);
+            bmp.DrawPolygon(v2[6], colorBlack, v2[2], colorBlue, v2[1], colorLightBlue);
         }
 
         if (visibleTop)
@@ -350,13 +379,16 @@ public partial class frmHelloCube : Form
 
             //g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[3].x, v2[3].y), new PointF(v2[2].x, v2[2].y), new PointF(v2[6].x, v2[6].y) });
             //g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[6].x, v2[6].y), new PointF(v2[7].x, v2[7].y), new PointF(v2[3].x, v2[3].y) });
+
+            bmp.DrawPolygon(v2[3], colorViolet, v2[2], colorBlue, v2[6], colorBlack);
+            bmp.DrawPolygon(v2[6], colorBlack, v2[7], colorRed, v2[3], colorViolet);
         }
 
         if (visibleLeft)
         {
             //  left side
-            bmp.DrawPolygon(v2[0], colorRed, v2[3], colorBlue, v2[4], colorBlue);
-            bmp.DrawPolygon(v2[4], colorBlue, v2[3], colorBlue, v2[7], colorRed);
+            bmp.DrawPolygon(v2[0], colorWhite, v2[3], colorViolet, v2[4], colorYellow);
+            bmp.DrawPolygon(v2[4], colorYellow, v2[3], colorViolet, v2[7], colorRed);
         }
 
         if (visibleBottom)
@@ -367,6 +399,8 @@ public partial class frmHelloCube : Form
 
             //g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[5].x, v2[5].y), new PointF(v2[1].x, v2[1].y), new PointF(v2[0].x, v2[0].y) });
             //g.DrawPolygon(Pens.Black, new PointF[] { new PointF(v2[4].x, v2[4].y), new PointF(v2[5].x, v2[5].y), new PointF(v2[0].x, v2[0].y) });
+            bmp.DrawPolygon(v2[5], colorGreen, v2[1], colorLightBlue, v2[0], colorWhite);
+            bmp.DrawPolygon(v2[4], colorYellow, v2[5], colorGreen, v2[0], colorWhite);
         }
 
     }

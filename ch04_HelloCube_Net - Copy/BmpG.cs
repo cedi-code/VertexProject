@@ -6,16 +6,17 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Linq;
+using System.Diagnostics;
 
 namespace ch03_HelloCube_Net
 {
-    class BmpG
+    class BmpG : IDisposable
     {
         #region values
         private Bitmap bmp;
         private BitmapData data;
         private int stride;
-        private float[,] zBuffer;
+        private ZBuffer zB;
         #endregion
 
         /// <summary>
@@ -23,17 +24,10 @@ namespace ch03_HelloCube_Net
         /// </summary>
         /// <param name="width">Width of the bitmap</param>
         /// <param name="height">Height of the bitmap</param>
-        public BmpG(int width, int height)
+        public BmpG(int width, int height, ZBuffer buffer)
         {
             this.bmp = new Bitmap(width, height);
-            zBuffer = new float[height,width];
-            for(int h = 0; h < height-1; h++)
-            {
-                for(int w = 0; w < width -1; w++)
-                {
-                    zBuffer[h,w] = 9999.99f;
-                }
-            }
+            zB = buffer;
 
         }
         
@@ -146,10 +140,8 @@ namespace ch03_HelloCube_Net
 
                         #endregion
                         posZ = startZ + ratio * (endZ - startZ);
-                        if (zBuffer[posY, posX] > posZ)
+                        if (zB.checkZ(posX, posY, posZ))
                         {
-                            zBuffer[posY, posX] = posZ;
-
                             // set active pixel the rgb (r=x, g=y, b=z)
                             ptr[activeX + activeY] = (byte)(newColor.z);
                             ptr[activeX + activeY + 1] = (byte)(newColor.y);
@@ -198,9 +190,8 @@ namespace ch03_HelloCube_Net
                         newColor                   = start_color + ratio * (end_color - start_color);
                         #endregion
                         posZ = startZ + ratio * (endZ - startZ);
-                        if (zBuffer[posY, posX] > posZ)
+                        if (zB.checkZ(posX, posY, posZ))
                         {
-                            zBuffer[posY, posX] = posZ;
                             // set active pixel the rgb (r=x, g=y, b=z)
                             ptr[activeX + activeY] = (byte)(newColor.z);
                             ptr[activeX + activeY + 1] = (byte)(newColor.y);
@@ -229,14 +220,13 @@ namespace ch03_HelloCube_Net
                     }
                 }
                 // set last pixel 
-                if(zBuffer[posY, posX] < end.z)
+                if (zB.checkZ(posX, posY, end.z))
                 {
-                    zBuffer[posY, posX] = end.z;
                     ptr[lastX + lastY] = (byte)(end_color.z);
                     ptr[lastX + lastY + 1] = (byte)(end_color.y);
                     ptr[lastX + lastY + 2] = (byte)(end_color.x);
                 }
-  
+
                 points.Add(end);
                 colors.Add(end_color);
 
@@ -265,8 +255,7 @@ namespace ch03_HelloCube_Net
             float[] yPoints = { v0.y, v1.y, v2.y };
 
             int anzahlX = 0;
-            int x1 = bmp.Width;
-            int x2 = 0;
+            SLVec3f x1, x2;
             int maxId = 0;
             SLVec3f startC = new SLVec3f();
             SLVec3f endC = new SLVec3f();
@@ -324,8 +313,9 @@ namespace ch03_HelloCube_Net
                 maxId                 = anzahlX - 1;
 
                 // setzt start x(1) und end x(2)
-                x1                    = (int) allSortedXonY[ indexY ][ 0 ].vectorPosition.x;
-                x2                    = (int) allSortedXonY[ indexY ][ maxId ].vectorPosition.x;
+                x1                    = allSortedXonY[ indexY ][ 0 ].vectorPosition;
+                
+                x2                    = allSortedXonY[ indexY ][ maxId ].vectorPosition;
 
                 // setzt start farbe und end farbe
                 startC.Set( allSortedXonY[ indexY] [ 0 ].vectorColor.x,
@@ -343,8 +333,9 @@ namespace ch03_HelloCube_Net
             }
 
 
-
         }
+
+        // TODO anstatt immer zu casten auf float umstellen
 
         /// <summary>
         /// Draws line only on one y axis
@@ -354,7 +345,7 @@ namespace ch03_HelloCube_Net
         /// <param name="y"> y axis on wich the line will be drawn</param>
         /// <param name="startColor"> color from x1 </param>
         /// <param name="endColor"> color from x2 </param>
-        private void draw1DLine(int x1, int x2, int y, SLVec3f startColor, SLVec3f endColor)
+        private void draw1DLine(SLVec3f x1, SLVec3f x2, int y, SLVec3f startColor, SLVec3f endColor)
         {
 
             
@@ -363,20 +354,25 @@ namespace ch03_HelloCube_Net
 
 
             int stepX          = 3, stepY = stride * y, increX = 1;
-            int activeX        = x1;
+            int activeX        = (int)x1.x;
+            float activeZ      = x1.z;
+            float startZ       = x1.z;
+            float endZ         = x2.z;
 
             // Color calculation setup
             SLVec3f newColor   = new SLVec3f();
             //SLVec3f startColor = new SLVec3f();
             //SLVec3f endColor = new SLVec3f();
             double distance;
-            double length      = Math.Abs(activeX - x2);
+            double length      = Math.Abs(activeX - x2.x);
+
+            float zDiffrence = endZ - startZ;
+            SLVec3f colorDiffrence = endColor - startColor;
 
 
 
-            
-            int activePosition = (x1 * stepX) + stepY;
-            int endPosition    = x2 * stepX + stepY;
+            int activePosition = (int)(x1.x * stepX) + stepY;
+            int endPosition    = (int)x2.x * stepX + stepY;
 
 
             unsafe
@@ -389,21 +385,29 @@ namespace ch03_HelloCube_Net
                 while (activePosition != endPosition)
                 {
 
-                    distance                = activeX - x1;
-                    float ratio             = (float)(distance / length);
-                    if (ratio > 1)          { ratio = 1; }
-                    newColor                = startColor + ratio * (endColor - startColor);
-                    ptr[activePosition]     = (byte)newColor.z;
-                    ptr[activePosition + 1] = (byte)newColor.y;
-                    ptr[activePosition + 2] = (byte)newColor.x;
+                    distance                = activeX - x1.x;
+                    float ratio             = (float)(distance / length); // todo bytes ändern anstatt durch zu rechnen?
+                    activeZ                 = startZ + ratio * zDiffrence;
+                    if (zB.checkZ(activeX, y, activeZ))
+                    {
+                        newColor            = startColor + ratio * colorDiffrence;
+                        ptr[activePosition] = (byte)newColor.z;
+                        ptr[activePosition + 1] = (byte)newColor.y;
+                        ptr[activePosition + 2] = (byte)newColor.x;
+                    }
+
 
                     activePosition          += stepX;
                     activeX                 += increX;
                     // zBuffer[y, activeX] = startZ + ratio * (endZ - startZ);
                 }
-                ptr[endPosition]            = (byte)endColor.z;
-                ptr[endPosition + 1]        = (byte)endColor.y;
-                ptr[endPosition + 2]        = (byte)endColor.x;
+                if (zB.checkZ((int)x2.x, y, x2.z))
+                {
+                    ptr[endPosition] = (byte)endColor.z;
+                    ptr[endPosition + 1] = (byte)endColor.y;
+                    ptr[endPosition + 2] = (byte)endColor.x;
+                }
+
 
             }
             bmp.UnlockBits(data);
@@ -436,7 +440,14 @@ namespace ch03_HelloCube_Net
         /// <returns>Bitmap with all the Graphics in it</returns>
         public Bitmap Result()
         {
+
             return bmp;
+            
+        }
+
+        public void Dispose()
+        {
+            bmp.Dispose();
         }
     }
 }

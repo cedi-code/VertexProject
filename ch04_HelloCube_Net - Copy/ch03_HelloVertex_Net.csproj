@@ -79,7 +79,7 @@
     <Compile Include="SLUtils.cs" />
     <Compile Include="SLVec3f.cs" />
     <Compile Include="SLVec4f.cs" />
-    <Compile Include="XVertexList.cs" />
+    <Compile Include="ZBuffer.cs" />
     <EmbeddedResource Include="frmHelloCube.resx">
       <DependentUpon>frmHelloCube.cs</DependentUpon>
     </EmbeddedResource>
