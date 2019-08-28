@@ -349,6 +349,7 @@ public partial class frmHelloCube : Form
             bmpGraphics.xRay = xRayActive;
             //drawDiffuseCube(vertex2, bmpGraphics);
             drawVertex(vertex2, bmpGraphics);
+            
 
             g.DrawImageUnscaled(bmpGraphics.Result(), 0, 0);
         }
@@ -470,17 +471,16 @@ public partial class frmHelloCube : Form
     private void frmHelloCube_MouseWheel(object sender, MouseEventArgs e)
    {
         // TODO implement zoom an camera!
-        //if ((zoomForce <= -1f && zoomForce >= -10f) ||
-        //    ((float)e.Delta / Math.Abs(e.Delta) ==+1 && zoomForce <= -10f) ||
-        //    ((float)e.Delta / Math.Abs(e.Delta) == -1 && zoomForce >= -1f))
-        //{
-        //    zoomForce += ((float)e.Delta / Math.Abs(e.Delta)) / 10;
-        //    m_camZ = zoomForce;
-        //    m_cam.z = zoomForce;
-        //}
+        // Console.WriteLine(m_camZ);
+            m_camZ += e.Delta / 100;
+            if(m_camZ > -3)
+            {
+                m_camZ = -3;
+            }
+            m_cam.z = m_camZ;
 
-        
-       
+
+
 
     }
 
