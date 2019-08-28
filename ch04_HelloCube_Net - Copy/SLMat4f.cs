@@ -335,11 +335,13 @@ public class SLMat4f
       SLUtils.Swap(ref m[7], ref m[13]);
       SLUtils.Swap(ref m[11],ref m[14]);
    }
-   
-   /// <summary>
-   /// Returns the transposed of the matrix
-   /// </summary>
-   public SLMat4f Transposed()
+
+
+
+    /// <summary>
+    /// Returns the transposed of the matrix
+    /// </summary>
+    public SLMat4f Transposed()
    {  SLMat4f t = new SLMat4f(this);
       t.Transpose();
       return t;

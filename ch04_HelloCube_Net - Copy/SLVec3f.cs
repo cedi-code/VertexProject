@@ -708,16 +708,28 @@ public class SLVec3f
    {
       return SLVec3f.Multiply(v,s);
    }
-   /// <summary>
-   /// Divides a vector by a scalar.
-   /// </summary>
-   /// <param name="v">A <see cref="SLVec3f"/> instance.</param>
-   /// <param name="s">A scalar</param>
-   /// <returns>A new <see cref="SLVec3f"/> containing the quotient.</returns>
-   /// <remarks>
-   /// result[i] = m_v[i] / s;
-   /// </remarks>
-   public static SLVec3f operator/(SLVec3f v, float s)
+
+    /// <summary>
+    /// Componentwise multiplication of two vectors.
+    /// </summary>
+    /// <param name="u">A <see cref="SLVec3f"/> instance.</param>
+    /// <param name="v">A <see cref="SLVec3f"/> instance.</param>
+    /// <returns>A new <see cref="SLVec3f"/> instance.</returns>
+    public static SLVec3f operator &(SLVec3f u, SLVec3f v)
+    {
+        return new SLVec3f(u.x*v.x, u.y*v.y, u.z*v.z);
+    }
+
+    /// <summary>
+    /// Divides a vector by a scalar.
+    /// </summary>
+    /// <param name="v">A <see cref="SLVec3f"/> instance.</param>
+    /// <param name="s">A scalar</param>
+    /// <returns>A new <see cref="SLVec3f"/> containing the quotient.</returns>
+    /// <remarks>
+    /// result[i] = m_v[i] / s;
+    /// </remarks>
+    public static SLVec3f operator/(SLVec3f v, float s)
    {
       return SLVec3f.Divide(v,s);
    }

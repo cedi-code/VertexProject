@@ -74,11 +74,13 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SL2Vec3f.cs" />
+    <Compile Include="SLLight.cs" />
     <Compile Include="SLMat3f.cs" />
     <Compile Include="SLMat4f.cs" />
     <Compile Include="SLUtils.cs" />
     <Compile Include="SLVec3f.cs" />
     <Compile Include="SLVec4f.cs" />
+    <Compile Include="SLVertex.cs" />
     <Compile Include="ZBuffer.cs" />
     <EmbeddedResource Include="frmHelloCube.resx">
       <DependentUpon>frmHelloCube.cs</DependentUpon>
