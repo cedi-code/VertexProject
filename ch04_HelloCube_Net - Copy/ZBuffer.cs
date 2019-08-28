@@ -9,12 +9,24 @@ namespace ch03_HelloCube_Net
     {
         private float[,] buffer;
         private int height, width;
+        public float near, far;
 
         public ZBuffer(int width, int height)
         {
             buffer = new float[width, height];
             this.height = height;
             this.width = width;
+            this.near = 0;
+            this.far = float.PositiveInfinity;
+            Reset();
+        }
+        public ZBuffer(int width, int height, float n, float f)
+        {
+            buffer = new float[width, height];
+            this.height = height;
+            this.width = width;
+            this.near = n;
+            this.far = f;
             Reset();
         }
         public void Reset()
@@ -23,7 +35,7 @@ namespace ch03_HelloCube_Net
             {
                 for(int h = 0; h < height; h++)
                 {
-                    buffer[w, h] = float.PositiveInfinity;
+                    buffer[w, h] = far;
                 }
             }
         }
@@ -31,8 +43,12 @@ namespace ch03_HelloCube_Net
         {
             if(buffer[x,y] > z)
             {
-                buffer[x, y] = z;
-                return true;
+                if(z > near)
+                {
+                    buffer[x, y] = z;
+                    return true;
+                }
+
             }
             return false;
         }

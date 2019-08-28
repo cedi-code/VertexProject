@@ -279,7 +279,8 @@ public partial class frmHelloCube : Form
                                 ClientRectangle.Width, 
                                 ClientRectangle.Height, 
                                 0, 1);
-        zBuffer = new ZBuffer(ClientRectangle.Width, ClientRectangle.Height);
+        zBuffer = new ZBuffer(ClientRectangle.Width, ClientRectangle.Height, 1.0f, 3.0f);
+
         m_cam = m_rotationMatrix * m_cam;
      
         this.Invalidate();
@@ -468,7 +469,7 @@ public partial class frmHelloCube : Form
     /// <summary>Handles the mouse wheel event</summary>
     private void frmHelloCube_MouseWheel(object sender, MouseEventArgs e)
    {
-        // TODO cap on m_camZ setzen
+        // TODO implement zoom an camera!
         //if ((zoomForce <= -1f && zoomForce >= -10f) ||
         //    ((float)e.Delta / Math.Abs(e.Delta) ==+1 && zoomForce <= -10f) ||
         //    ((float)e.Delta / Math.Abs(e.Delta) == -1 && zoomForce >= -1f))
@@ -477,6 +478,7 @@ public partial class frmHelloCube : Form
         //    m_camZ = zoomForce;
         //    m_cam.z = zoomForce;
         //}
+
         
        
 
