@@ -11,15 +11,6 @@ namespace ch03_HelloCube_Net
         private int height, width;
         public float near, far;
 
-        public ZBuffer(int width, int height)
-        {
-            buffer = new float[width, height];
-            this.height = height;
-            this.width = width;
-            this.near = 0;
-            this.far = float.PositiveInfinity;
-            Reset();
-        }
         public ZBuffer(int width, int height, float n, float f)
         {
             buffer = new float[width, height];
@@ -29,6 +20,7 @@ namespace ch03_HelloCube_Net
             this.far = f;
             Reset();
         }
+
         public void Reset()
         {
             for(int w = 0; w < width; w++)

@@ -27,16 +27,6 @@ namespace ch03_HelloCube_Net
         /// </summary>
         /// <param name="width">Width of the bitmap</param>
         /// <param name="height">Height of the bitmap</param>
-        public BmpG(int width, int height, ZBuffer buffer)
-        {
-            this.bmp = new Bitmap(width, height);
-            zB = buffer;
-            this.light = null;
-            this.phong = false;
-            this.data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
-            stride = data.Stride;
-
-        }
         public BmpG(int width, int height, ZBuffer buffer, SLLight light)
         {
             this.bmp = new Bitmap(width, height);
@@ -57,12 +47,9 @@ namespace ch03_HelloCube_Net
         /// <param name="end_color">ending color of ending vector</param>
         public void DrawLine(SLVertex start, SLVertex end)
         {
-            this.data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
             stride = data.Stride;
             List<SLVertex> noPointsNeeded      = new List<SLVertex>();
             Clipping_Line(start, end, ref noPointsNeeded);
-
-            bmp.UnlockBits(data);
         }
 
         /// <summary>
@@ -134,6 +121,7 @@ namespace ch03_HelloCube_Net
 
 
             #endregion
+            #region drawLine with Phong
             if (phong)
             {
 
@@ -272,6 +260,7 @@ namespace ch03_HelloCube_Net
 
                 }
             }
+            #endregion
             // ohne phong
             else
             {
@@ -404,60 +393,60 @@ namespace ch03_HelloCube_Net
         /// <param name="c2">color4 from vector 2 </param>
         public void DrawPolygon(SLVertex vertex0, SLVertex vertex1, SLVertex vertex2)
         {
-            //Clipping_Line(v0,v1);
-            //Clipping_Line(v1, v2);
-            //Clipping_Line(v2, v0);
 
             // check if vectors are at the boarder;
             // Draws the line between the 3 vectors and saves the primitves
-
-            SLVertex v0 = new SLVertex(), v1 = new SLVertex(), v2 = new SLVertex();
-            v0.Set(vertex0);v1.Set(vertex1);v2.Set(vertex2);
-
-
-
             List<SLVertex> allPrimitves = new List<SLVertex>();
 
 
-            SLVertex randV0 = Clipping_Line(v0,v1, ref allPrimitves);
-            SLVertex randV1 = Clipping_Line(v1,v2,ref allPrimitves);
-            SLVertex randV2 = Clipping_Line(v2,v0, ref allPrimitves);
+            SLVertex v0 = new SLVertex(), v1 = new SLVertex(), v2 = new SLVertex();
+            v0.Set(vertex0); v1.Set(vertex1); v2.Set(vertex2);
+
+            DrawPrimitives(v0, v1, v2, ref allPrimitves);
+
+
+            if (!xRay) // (allPrimitves.Count < 2) 
+            {
+                FillInPrimitives(v0, v1, v2, allPrimitves);
+            }
+
+        }
+
+        private void DrawPrimitives(SLVertex v0, SLVertex v1, SLVertex v2, ref List<SLVertex> allPrimitves)
+        {
+
+
+            SLVertex randV0 = Clipping_Line(v0, v1, ref allPrimitves);
+            SLVertex randV1 = Clipping_Line(v1, v2, ref allPrimitves);
+            SLVertex randV2 = Clipping_Line(v2, v0, ref allPrimitves);
 
             // todo draw rand line
-            if(randV0 != null && randV1 !=null)
+            if (randV0 != null && randV1 != null)
             {
                 DrawLine(randV0, randV1, ref allPrimitves);
 
-            }else if(randV1 != null && randV2 != null)
+            }
+            else if (randV1 != null && randV2 != null)
             {
                 DrawLine(randV1, randV2, ref allPrimitves);
             }
             else if (randV2 != null && randV0 != null)
             {
                 DrawLine(randV2, randV0, ref allPrimitves);
-   
+
             }
-            //if (!phong)
-            //{
-            //    v0.color = v0.colorToLight(light); v1.color = v1.colorToLight(light); v2.color = v2.colorToLight(light);
-            //}
+        }
+
+        private void FillInPrimitives(SLVertex v0, SLVertex v1, SLVertex v2, List<SLVertex> allPrimitves)
+        {
 
 
 
-
-            if (allPrimitves.Count < 2 || xRay)
-            {
-                return;
-            }
-
-
-
-            SLVec3f vec0 = v0.position, vec1 = v1.position, vec2 = v2.position;
-            SLVec3f c0 = v0.color, c1 = v1.color, c2 = v2.color;
             #region values
             int minY, maxY;
 
-
+            SLVec3f vec0 = v0.position, vec1 = v1.position, vec2 = v2.position;
+            SLVec3f c0 = v0.color, c1 = v1.color, c2 = v2.color;
 
 
             float[] yPoints = { vec0.y, vec1.y, vec2.y };
@@ -473,15 +462,15 @@ namespace ch03_HelloCube_Net
             #region calculate setup
 
             // calculates the square around the triangle
-            minY            = (int)yPoints.Min();
-            maxY            = (int)Math.Round(yPoints.Max(),0);
+            minY = (int)yPoints.Min();
+            maxY = (int)Math.Round(yPoints.Max(), 0);
 
 
 
 
 
             // creates list on the size of the square (boundries)
-            List<SLVertex>[] allXonY       = new List<SLVertex>[maxY + 1 - minY];
+            List<SLVertex>[] allXonY = new List<SLVertex>[maxY + 1 - minY];
             List<SLVertex>[] allSortedXonY = new List<SLVertex>[maxY + 1 - minY];
 
             // füllt die Liste auf (ist performance technisch besser)
@@ -512,33 +501,28 @@ namespace ch03_HelloCube_Net
                     continue;
                 }
 
-                // TODO änder das es im vertex sucht!
                 // sortiert alle x der reihe nach
                 allSortedXonY[indexY] = allXonY[indexY].OrderBy(v => v.position.x).ToList<SLVertex>();
-                maxId                 = anzahlX - 1;
+                maxId = anzahlX - 1;
 
                 // setzt start x(1) und end x(2)
-                x1                    = allSortedXonY[ indexY ][ 0 ];
-                
-                x2                    = allSortedXonY[ indexY ][ maxId ];
+                x1 = allSortedXonY[indexY][0];
 
-                if(x1.position.x == x2.position.x)
+                x2 = allSortedXonY[indexY][maxId];
+
+                if (x1.position.x == x2.position.x)
                 {
                     continue;
                 }
-                draw1DLine(x1, x2, indexY + minY);
-                
-  
                 // zeichnet die line auf der höhe vom index Y
+                draw1DLine(x1, x2, indexY + minY);
+
+
+
 
 
             }
-
-
-
         }
-
-
         /// <summary>
         /// Draws line only on one y axis
         /// </summary>
@@ -702,25 +686,17 @@ namespace ch03_HelloCube_Net
                 {
                     return null;
                 }
-
-                if (codeA > 0)
+                if(codeA > 0 || codeB > 0)
                 {
-                    calcPoints(ref v0,ref  v1, codeA);
-                    border = v0;
+                    border = (codeA > 0) ? calcPoints(ref v0, ref v1, codeA) : calcPoints(ref v1, ref v0, codeB);
                 }
-                else if (codeB > 0)
-                {
-                    calcPoints(ref v1, ref v0, codeB);
-                    border = v1;
-                }
-
-
 
             }
             if (!phong)
             {
                 v0.color = v0.colorToLight(light); v1.color = v1.colorToLight(light);
             }
+
             DrawLine(v0, v1, ref allPrimitves);
 
             if(border != null)
@@ -734,7 +710,7 @@ namespace ch03_HelloCube_Net
         }
 
         int left = 1, right = 2, top = 4, bottom = 8;
-        private void calcPoints(ref SLVertex v1, ref SLVertex v2, int code)
+        private SLVertex calcPoints(ref SLVertex v1, ref SLVertex v2, int code)
         {
             float x1 = v1.position.x, y1 = v1.position.y;
             float x2 = v2.position.x, y2 = v2.position.y;
@@ -763,6 +739,8 @@ namespace ch03_HelloCube_Net
                 v1.position.y = -1;
                 v1.position.x = -1;
             }
+
+            return v1;
 
 
 

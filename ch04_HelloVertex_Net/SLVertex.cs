@@ -53,14 +53,6 @@ namespace ch03_HelloCube_Net
             this.nColor = color / 255;
             this.posInView = pVI;
         }
-        public SLVertex(float px, float py, float pz, SLVec3f norm, SLVec3f col)
-        {
-            this.position = new SLVec3f(px, py, pz);
-            this.normale = norm;
-            this.color = col;
-            this.nColor = color / 255;
-            this.posInView = null;
-        }
 
 
         public SLVec3f colorToLight(SLLight light)

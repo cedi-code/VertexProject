@@ -16,3 +16,14 @@ F:\github\VertexProject\ch04_HelloCube_Net - Copy\obj\x64\Debug\ch03_HelloVertex
 F:\github\VertexProject\ch04_HelloCube_Net - Copy\obj\x64\Debug\ch03_HelloVertex_Net.csproj.CoreCompileInputs.cache
 F:\github\VertexProject\ch04_HelloCube_Net - Copy\obj\x64\Debug\ch03_HelloCube_Net.exe
 F:\github\VertexProject\ch04_HelloCube_Net - Copy\obj\x64\Debug\ch03_HelloCube_Net.pdb
+F:\github\VertexProject\ch04_HelloVertex_Net\obj\x64\Debug\ch03_HelloVertex_Net.csprojAssemblyReference.cache
+F:\github\VertexProject\ch04_HelloVertex_Net\obj\x64\Debug\frmHelloCube.resources
+F:\github\VertexProject\ch04_HelloVertex_Net\obj\x64\Debug\ch03_HelloCube_Net.Properties.Resources.resources
+F:\github\VertexProject\ch04_HelloVertex_Net\obj\x64\Debug\ch03_HelloVertex_Net.csproj.GenerateResource.cache
+F:\github\VertexProject\ch04_HelloVertex_Net\obj\x64\Debug\ch03_HelloVertex_Net.csproj.CoreCompileInputs.cache
+F:\github\VertexProject\ch04_HelloVertex_Net\obj\x64\Debug\ch03_HelloCube_Net.exe
+F:\github\VertexProject\ch04_HelloVertex_Net\obj\x64\Debug\ch03_HelloCube_Net.pdb
+F:\github\_bin-Debug-x64\ch03_HelloCube_Net.exe.manifest
+F:\github\_bin-Debug-x64\ch03_HelloCube_Net.application
+F:\github\VertexProject\ch04_HelloVertex_Net\obj\x64\Debug\ch03_HelloCube_Net.exe.manifest
+F:\github\VertexProject\ch04_HelloVertex_Net\obj\x64\Debug\ch03_HelloCube_Net.application

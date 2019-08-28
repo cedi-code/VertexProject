@@ -32,8 +32,8 @@ public partial class frmHelloCube : Form
     private SLVec3f cursorPosition;
     private bool isDown;
     private ZBuffer zBuffer;
-    private SLVertex[] slVertices;
-    private int[] vNeighbour;
+    private List<SLVertex> slVertices;
+    private List<int> vNeighbour;
     private SLVec3f front, back, left, right, top, bottom;
     private SLLight light;
     private bool phongActive;
@@ -62,7 +62,7 @@ public partial class frmHelloCube : Form
     /// We initialize the matrices and the vertices for the wire frame cube
     /// </summary>
     public frmHelloCube()
-   {
+    {
         // Create matrices
         m_modelMatrix      = new SLMat4f();
         m_viewMatrix       = new SLMat4f();
@@ -93,16 +93,20 @@ public partial class frmHelloCube : Form
         sw.Start();
         second = new TimeSpan(0, 0, 1);
         fps = 0;
-        // setUpCube(ref slVertices, ref vNeighbour);
-        buildSphere(1.5f, 15, 15, ref slVertices, ref vNeighbour);
+   
+        slVertices = new List<SLVertex>();
+        vNeighbour = new List<int>();
 
+
+        buildSphere(1f, 15, 15, ref slVertices, ref vNeighbour);
+        // setUpCube(ref slVertices, ref vNeighbour);
 
 
         // Without double buffering it would flicker
         this.DoubleBuffered = true;
         InitializeComponent();
-   }
-   private void setUpCube(ref SLVertex[] vertices, ref int[] indices)
+    }
+    private void setUpCube(ref List<SLVertex> vertices, ref List<int> indices)
    {
 
         m_v = new SLVec3f[8];
@@ -122,49 +126,47 @@ public partial class frmHelloCube : Form
         top = new SLVec3f(0, 1, 0);
         bottom = new SLVec3f(0, -1, 0);
 
-        vertices = new SLVertex[m_v.Length * 3];
-        vertices[0]  = new SLVertex(m_v[0], front , colorRed);
-        vertices[1]  = new SLVertex(m_v[1], front , colorRed);
-        vertices[2]  = new SLVertex(m_v[2], front , colorRed);
-        vertices[3]  = new SLVertex(m_v[3], front , colorRed);
-        vertices[4]  = new SLVertex(m_v[0], left  , colorRed);
-        vertices[5]  = new SLVertex(m_v[4], left  , colorRed);
-        vertices[6]  = new SLVertex(m_v[7], left  , colorRed);
-        vertices[7]  = new SLVertex(m_v[3], left  , colorRed);
-        vertices[8]  = new SLVertex(m_v[4], back  , colorRed);
-        vertices[9]  = new SLVertex(m_v[5], back  , colorRed);
-        vertices[10] = new SLVertex(m_v[6], back  , colorRed);
-        vertices[11] = new SLVertex(m_v[7], back  , colorRed);
-        vertices[12] = new SLVertex(m_v[1], right , colorRed);
-        vertices[13] = new SLVertex(m_v[5], right , colorRed);
-        vertices[14] = new SLVertex(m_v[6], right , colorRed);
-        vertices[15] = new SLVertex(m_v[2], right , colorRed);
-        vertices[16] = new SLVertex(m_v[2], top   , colorRed);
-        vertices[17] = new SLVertex(m_v[6], top   , colorRed);
-        vertices[18] = new SLVertex(m_v[7], top   , colorRed);
-        vertices[19] = new SLVertex(m_v[3], top   , colorRed);
-        vertices[20] = new SLVertex(m_v[0], bottom, colorRed);
-        vertices[21] = new SLVertex(m_v[4], bottom, colorRed);
-        vertices[22] = new SLVertex(m_v[5], bottom, colorRed);
-        vertices[23] = new SLVertex(m_v[1], bottom, colorRed);
+        vertices.Add(new SLVertex(m_v[0], front , colorRed));
+        vertices.Add(new SLVertex(m_v[1], front , colorRed));
+        vertices.Add(new SLVertex(m_v[2], front , colorRed));
+        vertices.Add(new SLVertex(m_v[3], front , colorRed));
+        vertices.Add(new SLVertex(m_v[0], left  , colorRed));
+        vertices.Add(new SLVertex(m_v[4], left  , colorRed));
+        vertices.Add(new SLVertex(m_v[7], left  , colorRed));
+        vertices.Add(new SLVertex(m_v[3], left  , colorRed));
+        vertices.Add(new SLVertex(m_v[4], back  , colorRed));
+        vertices.Add(new SLVertex(m_v[5], back  , colorRed));
+        vertices.Add(new SLVertex(m_v[6], back  , colorRed));
+        vertices.Add(new SLVertex(m_v[7], back  , colorRed));
+        vertices.Add(new SLVertex(m_v[1], right , colorRed));
+        vertices.Add(new SLVertex(m_v[5], right , colorRed));
+        vertices.Add(new SLVertex(m_v[6], right , colorRed));
+        vertices.Add(new SLVertex(m_v[2], right , colorRed));
+        vertices.Add(new SLVertex(m_v[2], top   , colorRed));
+        vertices.Add(new SLVertex(m_v[6], top   , colorRed));
+        vertices.Add(new SLVertex(m_v[7], top   , colorRed));
+        vertices.Add(new SLVertex(m_v[3], top   , colorRed));
+        vertices.Add(new SLVertex(m_v[0], bottom, colorRed));
+        vertices.Add(new SLVertex(m_v[4], bottom, colorRed));
+        vertices.Add(new SLVertex(m_v[5], bottom, colorRed));
+        vertices.Add(new SLVertex(m_v[1], bottom, colorRed));
 
 
 
-        indices = new int[36];
         int start = 0;
         int second = 0;
         int up = 1;
-        for(int i = 0; i < indices.Length;i+=6)
+        for(int i = 0; i < 36;i+=6)
         {
             for(int s = 0; s < 4; s+=3)
             {
                 for (int d = 1; d < 3; d++)
                 {
-                    indices[i + d + s] = up;
+                    indices.Add(up);
                     up++;
                 }
                 up--;
-                indices[i+s] = start;
+                indices.Add(start);
             }
             start += 4;
             up = start + 1;
@@ -172,12 +174,12 @@ public partial class frmHelloCube : Form
 
     }
 
-    void buildSphere(float radius, int stacks, int slices, ref SLVertex[] vertices, ref int[] indices )
+    void buildSphere(float radius, int stacks, int slices, ref List<SLVertex> vertices, ref List<int> indices )
     {
 
         // create vertex array
         int _numV = (stacks + 1) * (slices + 1);
-        vertices = new SLVertex[_numV];
+        addVerteciesToList(ref vertices, _numV);
 
         float theta, dtheta; // angles around x-axis
         float phi, dphi;     // angles around z-axis
@@ -202,7 +204,7 @@ public partial class frmHelloCube : Form
                 if (j == slices) { phi = 0.0f; }
 
                 // is unnecessary
-                vertices[iv] = new SLVertex();
+                //vertices[iv] = new SLVertex();
                 vertices[iv].setColor(colorRed);
                 // define first the normal with length 1
                 vertices[iv].normale.x = sin_theta * (float) Math.Cos(phi);
@@ -227,7 +229,7 @@ public partial class frmHelloCube : Form
         // create Index array x
         // neighbors
         int _numI = (int)(slices * stacks * 2 * 3);
-        indices = new int[_numI];
+        // indices = new int[_numI];
         int ii = 0, iV1, iV2;
 
         for (i = 0; i < stacks; ++i)
@@ -238,16 +240,24 @@ public partial class frmHelloCube : Form
 
             for (j = 0; j < slices; ++j)
             { // 1st triangle ccw
-                indices[ii++] = iV1 + j;
-                indices[ii++] = iV2 + j;
-                indices[ii++] = iV2 + j + 1;
+                indices.Add(iV1 + j);
+                indices.Add(iV2 + j);
+                indices.Add(iV2 + j + 1);
                 // 2nd triangle ccw
-                indices[ii++] = iV1 + j;
-                indices[ii++] = iV2 + j + 1;
-                indices[ii++] = iV1 + j + 1;
+                indices.Add(iV1 + j);
+                indices.Add(iV2 + j + 1);
+                indices.Add(iV1 + j + 1);
             }
         }
 
+    }
+
+    private void addVerteciesToList(ref List<SLVertex> l, int size)
+    {
+        for(int s = 0; s < size; s++)
+        {
+            l.Add(new SLVertex());
+        }
     }
 
     /// <summary>
@@ -259,7 +269,6 @@ public partial class frmHelloCube : Form
       Console.WriteLine("");
       Console.WriteLine("--------------------------------------------------------------");
       Console.WriteLine("Spinning cube without with .Net ...");
-
         this.KeyPreview = true;
        
 
@@ -273,9 +282,9 @@ public partial class frmHelloCube : Form
    /// </summary>
    private void frmHelloCube_Resize(object sender, EventArgs e)
    {  
-      float aspect = (float)ClientRectangle.Width / (float)ClientRectangle.Height;
-      m_projectionMatrix.Perspective(50, aspect, 1.0f, 3.0f);
-      m_viewportMatrix.Viewport(0, 0, 
+        float aspect = (float)ClientRectangle.Width / (float)ClientRectangle.Height;
+        m_projectionMatrix.Perspective(50, aspect, 1.0f, 3.0f);
+        m_viewportMatrix.Viewport(0, 0, 
                                 ClientRectangle.Width, 
                                 ClientRectangle.Height, 
                                 0, 1);
@@ -322,17 +331,18 @@ public partial class frmHelloCube : Form
         mvp.Multiply(mv); // kamera & view (cube)
 
         // transform all vertices into screen space (x & y in pixels and z as the depth) 
-        SLVertex[] vertex2 = new SLVertex[slVertices.Length];
-        for (int n = 0; n < slVertices.Length; n++)
+        // TODO keine array sondern liste machen!
+        List<SLVertex> vertex2 = new List<SLVertex>();
+        for (int n = 0; n < slVertices.Count; n++)
         {
-            vertex2[n] = new SLVertex(mvp.Multiply(slVertices[n].position), 
+            vertex2.Add(new SLVertex(mvp.Multiply(slVertices[n].position), 
                                       nm.Multiply(slVertices[n].normale),
                                       colorRed,
-                                      mv.Multiply(slVertices[n].position));
+                                      mv.Multiply(slVertices[n].position)));
 
         }
         Graphics g = e.Graphics;
-        // g.SmoothingMode = SmoothingMode.AntiAlias;
+        g.SmoothingMode = SmoothingMode.AntiAlias;
         e.Graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
         e.Graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
         e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
@@ -354,9 +364,6 @@ public partial class frmHelloCube : Form
             g.DrawImageUnscaled(bmpGraphics.Result(), 0, 0);
         }
 
-        //float r = trackBallRadi();
-        //g.DrawEllipse(Pens.White, (ClientRectangle.Width / 2) - r, (ClientRectangle.Height / 2) - r, r*2, r*2);
-
         // Tell the system that the window should be repaint again
         this.Invalidate();
    }
@@ -365,15 +372,10 @@ public partial class frmHelloCube : Form
    private void frmHelloCube_MouseDown(object sender, MouseEventArgs e)
    {
 
-
-
         isDown = true;
 
         preCursorPosition.Set(PerDeg(e.X, ClientRectangle.Width), PerDeg(e.Y, ClientRectangle.Height), 0);
         cursorPosition.Set(PerDeg(e.X, ClientRectangle.Width), PerDeg(e.Y, ClientRectangle.Height), 0);
-
-        //preTrackBallVec.Set(trackBallVec(e.X, e.Y));
-        //currTrackBallVec.Set(trackBallVec(e.X, e.Y));
 
         this.Invalidate();
   
@@ -386,20 +388,8 @@ public partial class frmHelloCube : Form
    {
         if(isDown)
         {
-
             // cursor position
             cursorPosition.Set(PerDeg(e.X, ClientRectangle.Width), PerDeg(e.Y,ClientRectangle.Height), 0);
-            //currTrackBallVec.Set(trackBallVec(e.X, e.Y));
-
-
-            // on what angle
-            //float dot = SLVec3f.DotProduct( currTrackBallVec, preTrackBallVec);
-            //add_rotAngle = RadToDeg((float)Math.Acos(dot));
-
-            // on witch acces
-            //add_rotAxis = SLVec3f.CrossProduct(preTrackBallVec, currTrackBallVec);
-
-
             this.Invalidate();
 
         }
@@ -410,77 +400,27 @@ public partial class frmHelloCube : Form
     /// <summary>Handles the mouse up event</summary>
     private void frmHelloCube_MouseUp(object sender, MouseEventArgs e)
    {
-        //currTrackBallVec.Set(trackBallVec(e.X, e.Y));
-
-        //preTrackBallVec.Normalize();
-        //currTrackBallVec.Normalize();
-
-
-        //// Degrees
-        //float dot = SLVec3f.DotProduct(preTrackBallVec, currTrackBallVec);
-
-        //add_rotAngle = RadToDeg((float)Math.Acos(dot));
-
-
-
-        //// on wich acces
-        //add_rotAxis = SLVec3f.CrossProduct(preTrackBallVec, currTrackBallVec);
-
-
-
-        //// save rotation in Matrix
-        //m_rotationMatrix.Rotate(add_rotAngle, -add_rotAxis);
-
-
-        //// reset so they dont add up
-        //add_rotAngle = 0;
-        //add_rotAxis.Set(SLVec3f.Zero);
-
         m_rotAngleSide += cursorPosition.x - preCursorPosition.x;
         m_rotAngleUp += cursorPosition.y - preCursorPosition.y;
-
-
-
-
-
-        // TODO setzte den trackball in di rotationmatrix ein!
-
-        //m_rotationMatrix.Rotate(cursorPosition.y - preCursorPosition.y, new SLVec3f(1, 0, 0));
-        //m_rotationMatrix.Rotate(cursorPosition.x - preCursorPosition.x, new SLVec3f(0, 1, 0));
-
-
-
-
 
         cursorPosition.Set(SLVec3f.Zero);
         preCursorPosition.Set(SLVec3f.Zero);
 
-
         isDown = false;
 
         this.Invalidate();
-
-      
-
-
-
     }
     
 
     /// <summary>Handles the mouse wheel event</summary>
     private void frmHelloCube_MouseWheel(object sender, MouseEventArgs e)
    {
-        // TODO implement zoom an camera!
-        // Console.WriteLine(m_camZ);
-            m_camZ += e.Delta / 100;
-            if(m_camZ > -3)
-            {
-                m_camZ = -3;
-            }
-            m_cam.z = m_camZ;
-
-
-
+        m_camZ += e.Delta / 100;
+        if(m_camZ > -3)
+        {
+            m_camZ = -3;
+        }
+        m_cam.z = m_camZ;
 
     }
 
@@ -536,20 +476,19 @@ public partial class frmHelloCube : Form
         return (value / max) * 180;
     }
 
-    private void drawVertex(SLVertex[] vertex, BmpG bmp)
+    private void drawVertex(List<SLVertex> vertex, BmpG bmp)
     {
         // TODO stacks berechnen
-        for (int i = 0; i < vNeighbour.Length; i += 6)
+        for (int i = 0; i < vNeighbour.Count; i += 6)
         {
             SLVec3f face = SLVec3f.CrossProduct((vertex[vNeighbour[i+1]].position - vertex[vNeighbour[i]].position), (vertex[vNeighbour[i + 2]].position - vertex[vNeighbour[i]].position));
-            //float front = (vertex[vNeighbour[i + 1]].normale + vertex[vNeighbour[i]].normale + vertex[vNeighbour[i + 1]].normale).z;
             // if backface culling
             if (SLVec3f.DotProduct(face, m_cam) >= 0 || xRayActive)
             {
                 bmp.DrawPolygon(vertex[vNeighbour[i]], vertex[vNeighbour[i + 1]], vertex[vNeighbour[i + 2]]);
                 
             }
-            // TODO nur bei nicht 4ecken überprüfen!
+            // second polygon in square
             SLVec3f face2 = SLVec3f.CrossProduct((vertex[vNeighbour[i + 4]].position - vertex[vNeighbour[i + 3]].position), (vertex[vNeighbour[i + 5]].position - vertex[vNeighbour[i + 3]].position));
             if (SLVec3f.DotProduct(face2, m_cam) >= 0 || xRayActive)
             {
@@ -577,7 +516,9 @@ public partial class frmHelloCube : Form
     }
     private void updateObjects()
     {
-        // setUpCube(ref slVertices, ref vNeighbour);
+        // TODO cube erhalten!
+        slVertices.Clear();
+        vNeighbour.Clear();
         buildSphere(1.5f, (int)stackUpDown.Value, (int)slicesUpDown.Value, ref slVertices, ref vNeighbour);
     }
 
@@ -589,7 +530,6 @@ public partial class frmHelloCube : Form
     {
         if(sw.Elapsed > second)
         {
-            // TODO show sw!
             fpsLabel.Text = fps.ToString("0.0") + " fps";
             fpsLabel.Update();
             fps = 0;
@@ -599,6 +539,11 @@ public partial class frmHelloCube : Form
         fps++;
     }
 
+    /// <summary>
+    /// moves camera in the input w a s d
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void frmHelloCube_KeyDown(object sender, KeyEventArgs e)
     {
         switch(e.KeyCode)
@@ -677,35 +622,9 @@ public partial class frmHelloCube : Form
     }
 
 
-    // v2[vertices[i].pointId] +
-    private void showNormale(SLVec3f[] v2,SLVertex[] vertex, BmpG bmp)
-    {
-        SLVec3f center = new SLVec3f(ClientRectangle.Width / 2, ClientRectangle.Height / 2, 0);
-        SLVertex centerVert = new SLVertex(center, new SLVec3f(), colorWhite);
-        for(int i = 0; i < slVertices.Length; i++)
-        {
-            bmp.DrawLine(centerVert,vertex[i]);
-            // TODO set position to normale 
-            // bmp.DrawLine(vertex[i].position, vertex[i].position + (vertex[i].normale - center)/10, colorWhite, colorWhite);
-            // bmp.DrawLine( v2[vertices[i].pointId], (normale[i]), colorWhite, colorWhite);
-        }
-
-
-    }
-    private void showVectors(SLVertex[] v2, BmpG bmp)
-    {
-        SLVertex zero = new SLVertex();
-        zero.setColor(colorWhite);
-        foreach (SLVertex v in v2)
-        {
-            bmp.DrawLine(zero, v);
-
-        }
-    }
-    // TODO CalcNormals funkioniert noch nicht!
     private void CalcNormals()
     {
-        for(int i = 0; i < vNeighbour.Length; i+= 3)
+        for(int i = 0; i < vNeighbour.Count; i+= 3)
         {
             SLVec3f e1, e2, n;
 
@@ -718,20 +637,11 @@ public partial class frmHelloCube : Form
             slVertices[vNeighbour[i + 2]].normale = n;
 
         }
-        for(int vid = 0; vid < slVertices.Length; vid++)
+        for(int vid = 0; vid < slVertices.Count; vid++)
         {
             slVertices[vid].normale.Normalize();
         }
     }
-
-    //private SLVec3f CalcColor(SLVertex v, SLVec3f c)
-    //{
-    //    Console.WriteLine(v.normale);
-    //    SLVec3f light = diffuseLight; //+ ambientLight;
-    //    float NdL = Math.Max(SLVec3f.DotProduct(v.normale, lightDir), 0);
-    //    SLVec3f color = (NdL * ((c/255) & light)) *255;
-    //    return color;
-    //}
 
     /// <summary>
     /// The main entry point for the application.
