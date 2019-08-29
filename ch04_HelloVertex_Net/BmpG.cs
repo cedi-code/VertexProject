@@ -20,6 +20,7 @@ namespace ch03_HelloCube_Net
         private SLLight light;
         public bool phong = false;
         public bool xRay = false;
+        public bool showZ = false;
         #endregion
 
         /// <summary>
@@ -261,7 +262,136 @@ namespace ch03_HelloCube_Net
                 }
             }
             #endregion
-            // ohne phong
+            #region zBufferVisulatation
+            // zBufferVisulatation
+            else if (showZ) 
+            {
+                double lengthZ = zB.far - zB.near;
+                double distanceZ;
+                startC = new SLVec3f(255, 255, 255);
+                endC = new SLVec3f();
+                unsafe
+                {
+                    // gets the first pixel adress in the bitmap
+                    byte* ptr = (byte*)data.Scan0;
+
+                    if (dx > dy)
+                    {
+                        int dE = (dy << 1); // dy*2 anstatt dx  / 2
+                        int dNE = (dy << 1) - (dx << 1); // dy*2 - dx*2
+                        int D = (dy << 1) - dx; // dy*2 - dx
+
+                        while (activeX != lastX)
+                        {
+
+
+
+                            #region calculation
+                            //                                             ___________________________
+                            // distance between start and active pixel    √ (x1 - x0)^2 + (y1 - y0)^2
+                            distance = Math.Sqrt((Math.Pow(posX - startVec.x, 2) + Math.Pow(posY - startVec.y, 2)));
+                            // distance percent between the whole line
+                            float ratio = (float)(distance / lenght);
+                            if (ratio > 1) { ratio = 1; }
+                            // gradient between start color and end color
+
+                            posZ = startZ + ratio * (endZ - startZ);
+                            distanceZ = posZ - zB.near;
+                            float ratioZ = (float)(distanceZ / lengthZ);
+                            newColor = startC + ratioZ * (endC - startC);
+                            primitves.Add(new SLVertex(posX, posY, posZ, newColor));
+                            #endregion
+
+                            if (zB.checkZ(posX, posY, posZ))
+                            {
+                                // set active pixel the rgb (r=x, g=y, b=z)
+                                ptr[activeX + activeY] = (byte)(newColor.z);
+                                ptr[activeX + activeY + 1] = (byte)(newColor.y);
+                                ptr[activeX + activeY + 2] = (byte)(newColor.x);
+                            }
+
+                            if (D < 0)
+                            {
+                                D += dE;
+                            }
+                            else
+                            {
+                                D += dNE;
+                                activeY += stepY;
+                                posY += stepDY;
+                            }
+
+                            activeX += stepX;
+                            posX += stepDX;
+                        }
+                    }
+                    else
+                    {
+                        int dE = (dx << 1);        // = 2*dx
+                        int dNE = (dx - dy) << 1;     // = 2*(dx-dy)
+                        int e = (dx << 1) - dy;   // = 2*dx - dy; 
+
+                        while (activeY != lastY)
+                        {
+
+                            #region color calculation
+                            //                                             ___________________________
+                            // distance between start and active pixel    √ (x1 - x0)^2 + (y1 - y0)^2
+                            distance = Math.Sqrt((Math.Pow(posX - startVec.x, 2) + Math.Pow(posY - startVec.y, 2)));
+                            float ratio = (float)(distance / lenght);
+                            if (ratio > 1) { ratio = 1; }
+                            posZ = startZ + ratio * (endZ - startZ);
+                            distanceZ = posZ - zB.near;
+                            float ratioZ = (float)(distanceZ / lengthZ);
+                            newColor = startC + ratioZ * (endC - startC);
+                            primitves.Add(new SLVertex(posX, posY, posZ, newColor));
+                            #endregion
+
+                            if (zB.checkZ(posX, posY, posZ))
+                            {
+                                // set active pixel the rgb (r=x, g=y, b=z)
+                                ptr[activeX + activeY] = (byte)(newColor.z);
+                                ptr[activeX + activeY + 1] = (byte)(newColor.y);
+                                ptr[activeX + activeY + 2] = (byte)(newColor.x);
+                            }
+
+                            // saves points to create the primitives
+
+                            activeY += stepY;
+                            posY += stepDY;
+
+                            if (e < 0)
+                            {
+                                e += dE;
+                            }
+                            else
+                            {
+                                e += dNE;
+                                activeX += stepX;
+                                posX += stepDX;
+
+                            }
+
+                        }
+                    }
+
+                    // set last pixel 
+                    if (zB.checkZ(posX, posY, endVec.z))
+                    {
+                        distanceZ = endVec.z - zB.near;
+                        float ratioZ = (float)(distanceZ / lengthZ);
+                        newColor = startC + ratioZ * (endC - startC);
+                        ptr[lastX + lastY] = (byte)(newColor.z);
+                        ptr[lastX + lastY + 1] = (byte)(newColor.y);
+                        ptr[lastX + lastY + 2] = (byte)(newColor.x);
+                    }
+
+                    primitves.Add(new SLVertex(endVec, end.normale, newColor));
+
+                }
+            }
+#endregion
+            // ohne phong & one z visualiesierung
             else
             {
                 unsafe
@@ -562,7 +692,7 @@ namespace ch03_HelloCube_Net
 
             int activePosition = (int)(startX * stepX) + stepY;
             int endPosition    = (int)x2.position.x * stepX + stepY;
-
+            #region phong
             if (phong)
             {
                 SLVec3f startNormale = x1.normale, endNormale = x2.normale;
@@ -611,6 +741,56 @@ namespace ch03_HelloCube_Net
                         ptr[endPosition] = (byte)endColor.z;
                         ptr[endPosition + 1] = (byte)endColor.y;
                         ptr[endPosition + 2] = (byte)endColor.x;
+                    }
+
+
+                }
+            }
+            #endregion
+            else if(showZ)
+            {
+                startColor = new SLVec3f(255, 255, 255);
+                endColor = new SLVec3f();
+                double distanceZ;
+                double lengthZ = zB.far - zB.near;
+                unsafe
+                {
+                    byte* ptr = (byte*)data.Scan0;
+
+                    //startColor.Set((float)ptr[activePosition], (float)ptr[activePosition + 1], (float)ptr[activePosition + 2]);
+                    //endColor.Set((float)ptr[endPosition], (float)ptr[endPosition + 1], (float)ptr[endPosition + 2]);
+
+                    while (activePosition != endPosition)
+                    {
+
+                        distance = activeX - startX;
+                        float ratio = (float)(distance / length); // todo bytes ändern anstatt durch zu rechnen?
+                        activeZ = startZ + ratio * zDiffrence;
+                        if (zB.checkZ(activeX, y, activeZ))
+                        {
+                            // TODO intorpolate normale and calc color
+                            newColor = startColor + ratio * colorDiffrence;
+                            distanceZ = activeZ - zB.near;
+                            float ratioZ = (float)(distanceZ / lengthZ);
+                            newColor = startColor + ratioZ * (endColor - startColor);
+                            ptr[activePosition] = (byte)newColor.z;
+                            ptr[activePosition + 1] = (byte)newColor.y;
+                            ptr[activePosition + 2] = (byte)newColor.x;
+                        }
+
+
+                        activePosition += stepX;
+                        activeX += increX;
+                        // zBuffer[y, activeX] = startZ + ratio * (endZ - startZ);
+                    }
+                    if (zB.checkZ((int)x2.position.x, y, x2.position.z))
+                    {
+                        distanceZ = x2.position.z - zB.near;
+                        float ratioZ = (float)(distanceZ / lengthZ);
+                        newColor = startColor + ratioZ * (endColor - startColor);
+                        ptr[endPosition] = (byte)newColor.z;
+                        ptr[endPosition + 1] = (byte)newColor.y;
+                        ptr[endPosition + 2] = (byte)newColor.x;
                     }
 
 
@@ -692,7 +872,7 @@ namespace ch03_HelloCube_Net
                 }
 
             }
-            if (!phong)
+            if (!phong && !showZ)
             {
                 v0.color = v0.colorToLight(light); v1.color = v1.colorToLight(light);
             }
