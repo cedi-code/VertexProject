@@ -10,20 +10,14 @@ using System.Collections.Generic;
 public partial class frmHelloCube : Form
 {
    #region Members
-    private SLMat4f   m_modelMatrix;       // model matrix
     private SLMat4f   m_viewMatrix;        // view matrix
     private SLMat4f   m_projectionMatrix;  // projection matrix
     private SLMat4f   m_viewportMatrix;    // viewport matrix
     private SLMat4f   m_rotationMatrix;
-    private SLVec3f   preTrackBallVec;         //trackball start
-    private SLVec3f   currTrackBallVec;       // current position on track ball
     private SLVec3f   m_cam;
     private float     m_camZ;              // z-distance of camera
     private float     m_rotAngleUp;          // angle of cube rotation
     private float     m_rotAngleSide;          // angle of cube rotation
-    private float     m_rotAngle;             // for the trackball
-    private float     add_rotAngle;
-    private SLVec3f   m_rotAxis;           // for the trackball
     private SLVec3f   add_rotAxis;
     private float     tForce;
     private float     scrollForce = 200.0f;
@@ -32,7 +26,6 @@ public partial class frmHelloCube : Form
     private bool isDown;
     private ZBuffer zBuffer;
     private List<Mesh> meshes;
-    private SLVec3f front, back, left, right, top, bottom;
     private SLLight light;
     private bool phongActive;
     private bool xWireframeActive;
@@ -63,13 +56,11 @@ public partial class frmHelloCube : Form
     public frmHelloCube()
     {
         // Create matrices
-        m_modelMatrix      = new SLMat4f();
         m_viewMatrix       = new SLMat4f();
         m_projectionMatrix = new SLMat4f();
         m_viewportMatrix   = new SLMat4f();
         m_rotationMatrix   = new SLMat4f();
-          // define the 8 vertices of a cube
-
+ 
 
         light = new SLLight();
         phongActive = false;
@@ -77,14 +68,9 @@ public partial class frmHelloCube : Form
         m_camZ = -5.5f;      // backwards movement of the camera
 
         m_cam = new SLVec3f(0, 0, m_camZ);
-      //preTrackBallVec = new SLVec3f();
-      //currTrackBallVec = new SLVec3f();
 
-        add_rotAngle = 0;
         add_rotAxis = new SLVec3f();
         tForce = 0.1f;
-        m_rotAngleUp = 0;
-        m_rotAngle = 0;
         preCursorPosition = new SLVec3f();
         cursorPosition = new SLVec3f();
 
@@ -94,18 +80,14 @@ public partial class frmHelloCube : Form
         fps = 0;
 
 
-        // setUpCube(ref slVertices, ref vNeighbour);
-        // buildSphere(1.5f, 15, 15, ref slVertices, ref vNeighbour);
-        //mesh = new Sphere(1.5f, 15, 15);
         meshes = new List<Mesh>();
         Cube c1 = new Cube(1f);
         c1.modelMatrix.Translate(-.5f, 0, 0);
-        c1.color = colorBlue;
+        c1.color = colorGreen;
 
         Sphere s1 = new Sphere(1.5f, 15, 15);
         s1.modelMatrix.Translate(.5f, 0, 0);
-        s1.color = colorGreen;
-
+        s1.color = colorRed;
 
         meshes.Add(c1);
         meshes.Add(s1);
@@ -146,11 +128,10 @@ public partial class frmHelloCube : Form
                                 ClientRectangle.Width, 
                                 ClientRectangle.Height, 
                                 0, 1);
-        // TODO söt eigentlech 3 si u ni 1.3 :(
-        // (-2 * f * n) / (f - n)
-        zBuffer = new ZBuffer(ClientRectangle.Width, ClientRectangle.Height, 1.0f, 1.35f);
 
-        m_cam = m_rotationMatrix * m_cam;
+        // set up zBuffer with the size of the window, near and far settup
+        zBuffer = new ZBuffer(ClientRectangle.Width, ClientRectangle.Height, 1.0f, 1.4f);
+
         controlBox.Update();
         this.Invalidate();
         
@@ -162,53 +143,52 @@ public partial class frmHelloCube : Form
     /// </summary>
     private void frmHelloCube_Paint(object sender, PaintEventArgs e)
     {
-
         Graphics g = e.Graphics;
+        #region graphicsSetup
+
         g.SmoothingMode = SmoothingMode.AntiAlias;
         e.Graphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
         e.Graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighSpeed;
         e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
         e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighSpeed;
 
+        #endregion
 
         addFps();
         zBuffer.Reset();
 
-
+        #region cameraMovement
         // start with identity every frame
         m_viewMatrix.Identity();
 
-
         // view transform: move the coordinate system away from the camera
-
         m_viewMatrix.Translate(m_cam);
 
-        m_viewMatrix.Multiply(m_rotationMatrix);
-        // add new Rotations
+        // add new Rotations for camera
         m_viewMatrix.Rotate(m_rotAngleUp + (cursorPosition.y - preCursorPosition.y), new SLVec3f(1, 0, 0));
         m_viewMatrix.Rotate(m_rotAngleSide + (cursorPosition.x - preCursorPosition.x), new SLVec3f(0, 1, 0));
-
+        #endregion
 
         using (BmpG bmpGraphics = new BmpG(ClientRectangle.Width, ClientRectangle.Height, zBuffer, light))
         {
-
+            #region graphicsMode
             bmpGraphics.phong = phongActive;
             bmpGraphics.wireframe = xWireframeActive;
             bmpGraphics.showZ = zShowActive;
-  
-            // ball.draw(bmpGraphics, m_cam);
+            #endregion
 
-
-
-            for (int m = 0; m < meshes.Count; m++)
+            foreach (Mesh mesh in meshes)
             {
+                // all transformed vertecies of the mesh are temporary saved in vertex2
+                List<SLVertex> vertex2 = new List<SLVertex>();
+
+                // Vertex Shader
+                #region transformPipeline
 
                 SLMat4f mv = new SLMat4f(m_viewMatrix);
-                mv.Multiply(meshes[m].modelMatrix);
+                mv.Multiply(mesh.modelMatrix);
 
                 SLMat3f nm = new SLMat3f(mv.InverseTransposed());
-
-                List<SLVertex> vertex2 = new List<SLVertex>();
 
                 // build combined matrix out of viewport, projection & modelview matrix
                 SLMat4f mvp = new SLMat4f();
@@ -216,30 +196,23 @@ public partial class frmHelloCube : Form
                 mvp.Multiply(m_projectionMatrix); // projektion
                 mvp.Multiply(mv); // kamera & view (cube)
 
-                // transform all vertices into screen space (x & y in pixels and z as the depth) 
-                // TODO keine array sondern liste machen!
-
-                for (int n = 0; n < meshes[m].vertices.Length; n++)
+                for (int n = 0; n < mesh.vertices.Length; n++)
                 {
-
-
-                    vertex2.Add(new SLVertex(mvp.Multiply(meshes[m].vertices[n].position),
-                                              nm.Multiply(meshes[m].vertices[n].normale),
-                                              meshes[m].color,
-                                              mv.Multiply(meshes[m].vertices[n].position)));
+                    vertex2.Add(new SLVertex(mvp.Multiply(mesh.vertices[n].position),
+                                              nm.Multiply(mesh.vertices[n].normale),
+                                              mesh.color,
+                                              mv.Multiply(mesh.vertices[n].position)));
                 
                 }
+                #endregion
 
-                drawVertices(vertex2, meshes[m].indices,m_cam, bmpGraphics);
+                // Fragment Shader
+                drawVertices(vertex2, mesh.indices,m_cam, bmpGraphics);
 
             }
+            // Pixel output
             g.DrawImageUnscaled(bmpGraphics.Result(), 0, 0);
         }
-
-
-
-
-
 
 
         // Tell the system that the window should be repaint again
@@ -289,12 +262,10 @@ public partial class frmHelloCube : Form
         this.Invalidate();
     }
     
-
     /// <summary>Handles the mouse wheel event</summary>
     private void frmHelloCube_MouseWheel(object sender, MouseEventArgs e)
    {
         m_camZ += e.Delta / scrollForce;
-        // Console.WriteLine(e.Delta / 200.0f);
         transformActive(0, 0, e.Delta / scrollForce);
 
     }
@@ -351,58 +322,113 @@ public partial class frmHelloCube : Form
         return (value / max) * 180;
     }
 
-    private void drawVertices(List<SLVertex> vertex, int[] indices,SLVec3f cam, BmpG bmp)
+    /// <summary>
+    /// Calls DrawPolygon for the vertecies with the same indices
+    /// backface culling calculations
+    /// </summary>
+    /// <param name="v">vertecies</param>
+    /// <param name="index">indecies</param>
+    /// <param name="cam">camera for backfaceculling</param>
+    /// <param name="bmp">bitmap to draw on</param>
+    private void drawVertices(List<SLVertex> v, int[] index,SLVec3f cam, BmpG bmp)
     {
-        for (int i = 0; i < indices.Length; i += 3)
+        for (int i = 0; i < index.Length; i += 3)
         {
-            SLVec3f face = SLVec3f.CrossProduct((vertex[indices[i + 1]].position - vertex[indices[i]].position), (vertex[indices[i + 2]].position - vertex[indices[i]].position));
-            if (SLVec3f.DotProduct(face, cam) >= 0 || xWireframeActive)
+            if (backfaceCulling(v[index[i]], 
+                                v[index[i + 1]], 
+                                v[index[i + 2]], 
+                                cam))
             {
-                bmp.DrawPolygon(vertex[indices[i]], vertex[indices[i + 1]], vertex[indices[i + 2]]);
+                bmp.DrawPolygon(v[index[i]], 
+                                v[index[i + 1]], 
+                                v[index[i + 2]]);
+
             }
 
         }
     }
 
+    /// <summary>
+    /// if vertecies are in inverse order or not
+    /// </summary>
+    /// <param name="v0">vertex 1</param>
+    /// <param name="v1">vertex 2</param>
+    /// <param name="v2">vertex 3</param>
+    /// <param name="cam">relative to the camera position</param>
+    /// <returns></returns>
+    private bool  backfaceCulling(SLVertex v0, SLVertex v1, SLVertex v2, SLVec3f cam)
+    {
+        SLVec3f face = SLVec3f.CrossProduct((v1.position - v0.position), (v2.position - v0.position));
+        return (SLVec3f.DotProduct(face, cam) >= 0 || xWireframeActive);
+    }
+
+    /// <summary>
+    /// After everything is loaded, the UI is update for the transparent background
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void frmHelloCube_Shown(object sender, EventArgs e)
     {
         controlBox.Update();
     }
 
+    /// <summary>
+    /// if the checkbox phon ist active set phong bool active
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void phongCheckBox_CheckedChanged(object sender, EventArgs e)
     {
         phongActive = phongCheckBox.Checked;
         light.isPhong = phongCheckBox.Checked;
     }
 
+    /// <summary>
+    /// calls updateSphere method
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void stackUpDown_ValueChanged(object sender, EventArgs e)
     {
-        updateObjects();
+        updateSphere((int)stackUpDown.Value, (int)slicesUpDown.Value);
     }
-    private void updateObjects()
-    {
-        if(meshes.Count > 1)
-        {
-            Mesh oldMesh = meshes[1];
-            meshes[1] = new Sphere(1.5f, (int)stackUpDown.Value, (int)slicesUpDown.Value);
-            meshes[1].color = oldMesh.color;
-            meshes[1].modelMatrix = oldMesh.modelMatrix;
-        }
-        else
-        {
-            Mesh oldMesh = meshes[0];
-            meshes[0] = new Sphere(1.5f, (int)stackUpDown.Value, (int)slicesUpDown.Value);
-            meshes[0].color = oldMesh.color;
-            meshes[0].modelMatrix = oldMesh.modelMatrix;
-        }
-
-
-    }
-
+    /// <summary>
+    /// calls updateSphere method
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void slicesUpDown_ValueChanged(object sender, EventArgs e)
     {
-        updateObjects();
+        updateSphere((int)stackUpDown.Value, (int)slicesUpDown.Value);
     }
+
+    /// <summary>
+    /// Updates the sphere with the new slices and stacks
+    /// </summary>
+    /// <param name="stacks">new stacks</param>
+    /// <param name="slices">new slices</param>
+    private void updateSphere(int stacks, int slices)
+    {
+        for(int i = 0; i < meshes.Count; i++)
+        {
+            if (meshes[i] is Sphere)
+            {
+                Mesh oldMesh = meshes[i];
+                meshes[i] = new Sphere(1.5f, stacks, slices);
+                meshes[i].color = oldMesh.color;
+                meshes[i].modelMatrix = oldMesh.modelMatrix;
+                break;
+            }
+        }
+
+
+
+
+    }
+
+    /// <summary>
+    /// updates and adds fps to the fps counter
+    /// </summary>
     private void addFps()
     {
         if(sw.Elapsed > second)
@@ -416,6 +442,11 @@ public partial class frmHelloCube : Form
         fps++;
     }
 
+    /// <summary>
+    /// shift key is left, scroll force goes back to normal
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void frmHelloCube_KeyUp(object sender, KeyEventArgs e)
     {
         if(e.KeyCode == Keys.ShiftKey)
@@ -424,8 +455,31 @@ public partial class frmHelloCube : Form
         }
     }
 
+    /// <summary>
+    /// if wireframe checkbox ist active or not
+    /// increaces diffuse
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void wireframeBox_CheckedChanged(object sender, EventArgs e)
+    {
+        xWireframeActive = wireframeBox.Checked;
+        if (xWireframeActive)
+        {
+            light.diffuse *= 10;
+        }
+        else
+        {
+            light.diffuse /= 10;
+        }
+    }
 
 
+    /// <summary>
+    /// sets zBuffer from chekbox active or not
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void zBufferBox_CheckedChanged(object sender, EventArgs e)
     {
         zShowActive = zBufferBox.Checked;
@@ -433,7 +487,7 @@ public partial class frmHelloCube : Form
 
 
     /// <summary>
-    /// moves camera in the input w a s d
+    /// moves active Controll Object in the input w a s d
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
@@ -464,7 +518,12 @@ public partial class frmHelloCube : Form
 
     }
 
-
+    /// <summary>
+    /// transforms active controll object
+    /// </summary>
+    /// <param name="x">x directon</param>
+    /// <param name="y">y directon</param>
+    /// <param name="z">z directon</param>
     private void transformActive( float x, float y, float z)
     {
 
@@ -472,10 +531,6 @@ public partial class frmHelloCube : Form
         {
             m_cam.y += y;
             m_cam.x += x;
-            if(m_camZ > -3)
-            {
-                z = -3;
-            }
             m_cam.z += z;
             return;
         }
@@ -495,42 +550,6 @@ public partial class frmHelloCube : Form
         }
     }
 
-
-    private void xRayBox_CheckedChanged(object sender, EventArgs e)
-    {
-        xWireframeActive = xRayBox.Checked;
-        if(xWireframeActive)
-        {
-            light.diffuse *= 10;
-        }else
-        {
-            light.diffuse /= 10;
-        }
-
-    }
-
-
-
-    //private void CalcNormals()
-    //{
-    //    for(int i = 0; i < vNeighbour.Count; i+= 3)
-    //    {
-    //        SLVec3f e1, e2, n;
-
-    //        e1 = slVertices[vNeighbour[i + 1]].position - slVertices[vNeighbour[i + 2]].position;
-    //        e2 = slVertices[vNeighbour[i + 1]].position - slVertices[vNeighbour[i]].position;
-
-    //        n = SLVec3f.CrossProduct(e1, e2);
-    //        slVertices[vNeighbour[i]].normale = n;
-    //        slVertices[vNeighbour[i + 1]].normale = n;
-    //        slVertices[vNeighbour[i + 2]].normale = n;
-
-    //    }
-    //    for(int vid = 0; vid < slVertices.Count; vid++)
-    //    {
-    //        slVertices[vid].normale.Normalize();
-    //    }
-    //}
 
     /// <summary>
     /// The main entry point for the application.

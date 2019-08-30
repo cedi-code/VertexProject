@@ -34,7 +34,7 @@ partial class frmHelloCube
             this.controllSphere = new System.Windows.Forms.RadioButton();
             this.controllCam = new System.Windows.Forms.RadioButton();
             this.zBufferBox = new System.Windows.Forms.CheckBox();
-            this.xRayBox = new System.Windows.Forms.CheckBox();
+            this.wireframeBox = new System.Windows.Forms.CheckBox();
             this.fpsLabel = new System.Windows.Forms.Label();
             this.circleControll = new System.Windows.Forms.GroupBox();
             this.slicesUpDown = new System.Windows.Forms.NumericUpDown();
@@ -66,7 +66,7 @@ partial class frmHelloCube
             this.controlBox.BackColor = System.Drawing.Color.Transparent;
             this.controlBox.Controls.Add(this.controlls);
             this.controlBox.Controls.Add(this.zBufferBox);
-            this.controlBox.Controls.Add(this.xRayBox);
+            this.controlBox.Controls.Add(this.wireframeBox);
             this.controlBox.Controls.Add(this.fpsLabel);
             this.controlBox.Controls.Add(this.circleControll);
             this.controlBox.Controls.Add(this.phongCheckBox);
@@ -138,16 +138,16 @@ partial class frmHelloCube
             this.zBufferBox.UseVisualStyleBackColor = true;
             this.zBufferBox.CheckedChanged += new System.EventHandler(this.zBufferBox_CheckedChanged);
             // 
-            // xRayBox
+            // wireframeBox
             // 
-            this.xRayBox.AutoSize = true;
-            this.xRayBox.Location = new System.Drawing.Point(6, 57);
-            this.xRayBox.Name = "xRayBox";
-            this.xRayBox.Size = new System.Drawing.Size(71, 17);
-            this.xRayBox.TabIndex = 3;
-            this.xRayBox.Text = "wireframe";
-            this.xRayBox.UseVisualStyleBackColor = true;
-            this.xRayBox.CheckedChanged += new System.EventHandler(this.xRayBox_CheckedChanged);
+            this.wireframeBox.AutoSize = true;
+            this.wireframeBox.Location = new System.Drawing.Point(6, 57);
+            this.wireframeBox.Name = "wireframeBox";
+            this.wireframeBox.Size = new System.Drawing.Size(71, 17);
+            this.wireframeBox.TabIndex = 3;
+            this.wireframeBox.Text = "wireframe";
+            this.wireframeBox.UseVisualStyleBackColor = true;
+            this.wireframeBox.CheckedChanged += new System.EventHandler(this.wireframeBox_CheckedChanged);
             // 
             // fpsLabel
             // 
@@ -269,7 +269,7 @@ partial class frmHelloCube
     private System.Windows.Forms.NumericUpDown slicesUpDown;
     private System.Windows.Forms.Label slicesLabel;
     private System.Windows.Forms.Label fpsLabel;
-    private System.Windows.Forms.CheckBox xRayBox;
+    private System.Windows.Forms.CheckBox wireframeBox;
     private System.Windows.Forms.CheckBox zBufferBox;
     private System.Windows.Forms.GroupBox controlls;
     private System.Windows.Forms.RadioButton controllCube;

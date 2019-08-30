@@ -5,11 +5,21 @@ using System.Text;
 
 namespace ch03_HelloCube_Net
 {
+    /// <summary>
+    /// creates a 3D Sphere out of a Mesh
+    /// </summary>
     class Sphere : Mesh
     {
-        private float radius;
-        private int stacks;
-        private int slices;
+        private float   radius;
+        private int     stacks;
+        private int     slices;
+
+        /// <summary>
+        /// creates a new Sphere
+        /// </summary>
+        /// <param name="radius">Radius of the Sphere</param>
+        /// <param name="stacks">Amount of Stacks</param>
+        /// <param name="slices">Amount of Slices</param>
         public Sphere(float radius, int stacks, int slices) 
               : base((stacks + 1) * (slices + 1), (slices * stacks * 2 * 3))
         {
@@ -20,6 +30,9 @@ namespace ch03_HelloCube_Net
             build();
         }
 
+        /// <summary>
+        /// sets all the vertices and indices of Sphere
+        /// </summary>
         public override void build()
         {
             float theta, dtheta; // angles around x-axis
@@ -33,6 +46,7 @@ namespace ch03_HelloCube_Net
             dtheta = (float)Math.PI / stacks;
             dphi = 2.0f * (float)Math.PI / slices;
 
+            #region setUpVertices
             // Define vertex position & normals by looping through all stacks
             for (i = 0; i <= stacks; ++i)
             {
@@ -67,7 +81,9 @@ namespace ch03_HelloCube_Net
                 }
                 theta += dtheta;
             }
+            #endregion
 
+            #region setUpIndices
             // create Index array x
             // neighbors
             int ii = 0, iV1, iV2;
@@ -88,6 +104,7 @@ namespace ch03_HelloCube_Net
                     indices[ii++] = iV1 + j + 1;
                 }
             }
+            #endregion
         }
     }
 }

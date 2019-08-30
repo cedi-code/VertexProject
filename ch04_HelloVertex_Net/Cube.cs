@@ -5,11 +5,21 @@ using System.Text;
 
 namespace ch03_HelloCube_Net
 {
+    /// <summary>
+    /// creates a 3D Cube out of a Mesh
+    /// </summary>
     class Cube : Mesh
     {
         private float size = 1.0f;
         private SLVec3f[] vectors;
         private SLVec3f front, back, left, right, top, bottom;
+
+        /// <summary>
+        /// creates new Cube 
+        /// 24 vertices
+        /// 36 indices
+        /// </summary>
+        /// <param name="size">length of the lines</param>
         public Cube(float size) : base(24,36)
         {
             vectors = new SLVec3f[8];
@@ -38,6 +48,7 @@ namespace ch03_HelloCube_Net
 
         public override void build()
         {
+            #region setUpVertices
             int ii = 0;
             vertices[ii++] = new SLVertex(vectors[0], front, color);
             vertices[ii++] = new SLVertex(vectors[1], front, color);
@@ -63,10 +74,10 @@ namespace ch03_HelloCube_Net
             vertices[ii++] = new SLVertex(vectors[4], bottom, color);
             vertices[ii++] = new SLVertex(vectors[5], bottom, color);
             vertices[ii++] = new SLVertex(vectors[1], bottom, color);
+            #endregion
 
-
+            #region setUpIndices
             int start = 0;
-            int second = 0;
             int up = 1;
             for (int i = 0; i < 36; i += 6)
             {
@@ -83,8 +94,13 @@ namespace ch03_HelloCube_Net
                 start += 4;
                 up = start + 1;
             }
+            #endregion
         }
 
+        /// <summary>
+        /// change size of cube
+        /// </summary>
+        /// <param name="s">new size</param>
         public void setSize(float s)
         {
             this.size = s;

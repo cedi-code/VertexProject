@@ -5,6 +5,10 @@ using System.Text;
 
 namespace ch03_HelloCube_Net
 {
+    /// <summary>
+    /// saves all values in a Vertex
+    /// (can also calculate light)
+    /// </summary>
     class SLVertex
     {
         public SLVec3f position;
@@ -13,7 +17,10 @@ namespace ch03_HelloCube_Net
         public SLVec3f color;
         public SLVec3f nColor;
 
-
+        /// <summary>
+        /// creates new Vertex with all new SLVec3();
+        /// nColor is not set!
+        /// </summary>
         public SLVertex()
         {
             position = new SLVec3f();
@@ -54,11 +61,13 @@ namespace ch03_HelloCube_Net
             this.posInView = pVI;
         }
 
-
+        /// <summary>
+        /// calculates a new color relative to the light
+        /// </summary>
+        /// <param name="light">relative to this light</param>
+        /// <returns>new color</returns>
         public SLVec3f colorToLight(SLLight light)
         {
-            // TODO nur Normalizierte farben speichern, damit man nur 1mal  * 255 rechnen muss!
-            // nur bei phong normalisieren :)
             if(light.isPhong)
             {
                 this.normale.Normalize();
@@ -67,12 +76,23 @@ namespace ch03_HelloCube_Net
             return checkColor(c) *255;
         }
 
+        /// <summary>
+        /// diffuses the color relative to its light distance
+        /// </summary>
+        /// <param name="light"></param>
+        /// <returns></returns>
         public SLVec3f difuse(SLLight light)
         {
             float NdL = Math.Max(SLVec3f.DotProduct(this.normale, light.direction), 0);
             SLVec3f colorD = ((nColor & light.diffuse) * NdL);
             return colorD;
         }
+
+        /// <summary>
+        /// calculates mirror effect from normale relative to the light
+        /// </summary>
+        /// <param name="light"></param>
+        /// <returns></returns>
         public SLVec3f spiegel(SLLight light)
         {
             SLVec3f R =  2 * (SLVec3f.DotProduct(light.direction, this.normale)) * this.normale - light.direction;
@@ -82,17 +102,30 @@ namespace ch03_HelloCube_Net
             return (light.mirror) * RsE;
         }
 
+        /// <summary>
+        /// shorts the values to 1, prevents out of range
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         private SLVec3f checkColor(SLVec3f c)
         {
             return new SLVec3f(Math.Min(c.x, 1), Math.Min(c.y, 1), Math.Min(c.z, 1));
         }
 
+        /// <summary>
+        /// sets color of this vertex
+        /// </summary>
+        /// <param name="c">color</param>
         public void setColor(SLVec3f c)
         {
             this.color = c;
             this.nColor = c / 255;
         }
 
+        /// <summary>
+        /// sets but dosn't create a vertex
+        /// </summary>
+        /// <param name="nVertex">new Vertex values</param>
         public void Set(SLVertex nVertex)
         {
             this.position.Set(nVertex.position);
