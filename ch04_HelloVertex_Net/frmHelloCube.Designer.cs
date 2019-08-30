@@ -29,6 +29,10 @@ partial class frmHelloCube
    {
             this.phongCheckBox = new System.Windows.Forms.CheckBox();
             this.controlBox = new System.Windows.Forms.GroupBox();
+            this.controlls = new System.Windows.Forms.GroupBox();
+            this.controllCube = new System.Windows.Forms.RadioButton();
+            this.controllSphere = new System.Windows.Forms.RadioButton();
+            this.controllCam = new System.Windows.Forms.RadioButton();
             this.zBufferBox = new System.Windows.Forms.CheckBox();
             this.xRayBox = new System.Windows.Forms.CheckBox();
             this.fpsLabel = new System.Windows.Forms.Label();
@@ -37,15 +41,11 @@ partial class frmHelloCube
             this.slicesLabel = new System.Windows.Forms.Label();
             this.stackUpDown = new System.Windows.Forms.NumericUpDown();
             this.label1 = new System.Windows.Forms.Label();
-            this.controlls = new System.Windows.Forms.GroupBox();
-            this.controllCam = new System.Windows.Forms.RadioButton();
-            this.controllSphere = new System.Windows.Forms.RadioButton();
-            this.controllCube = new System.Windows.Forms.RadioButton();
             this.controlBox.SuspendLayout();
+            this.controlls.SuspendLayout();
             this.circleControll.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.slicesUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.stackUpDown)).BeginInit();
-            this.controlls.SuspendLayout();
             this.SuspendLayout();
             // 
             // phongCheckBox
@@ -79,6 +79,54 @@ partial class frmHelloCube
             this.controlBox.TabStop = false;
             this.controlBox.Text = "Controlls";
             // 
+            // controlls
+            // 
+            this.controlls.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.controlls.Controls.Add(this.controllCube);
+            this.controlls.Controls.Add(this.controllSphere);
+            this.controlls.Controls.Add(this.controllCam);
+            this.controlls.ForeColor = System.Drawing.Color.White;
+            this.controlls.Location = new System.Drawing.Point(7, 104);
+            this.controlls.Name = "controlls";
+            this.controlls.Size = new System.Drawing.Size(67, 96);
+            this.controlls.TabIndex = 5;
+            this.controlls.TabStop = false;
+            this.controlls.Text = "Controlls";
+            // 
+            // controllCube
+            // 
+            this.controllCube.AutoSize = true;
+            this.controllCube.Location = new System.Drawing.Point(6, 66);
+            this.controllCube.Name = "controllCube";
+            this.controllCube.Size = new System.Drawing.Size(49, 17);
+            this.controllCube.TabIndex = 2;
+            this.controllCube.TabStop = true;
+            this.controllCube.Text = "cube";
+            this.controllCube.UseVisualStyleBackColor = true;
+            // 
+            // controllSphere
+            // 
+            this.controllSphere.AutoSize = true;
+            this.controllSphere.Location = new System.Drawing.Point(6, 42);
+            this.controllSphere.Name = "controllSphere";
+            this.controllSphere.Size = new System.Drawing.Size(59, 17);
+            this.controllSphere.TabIndex = 1;
+            this.controllSphere.TabStop = true;
+            this.controllSphere.Text = "Sphere";
+            this.controllSphere.UseVisualStyleBackColor = true;
+            // 
+            // controllCam
+            // 
+            this.controllCam.AutoSize = true;
+            this.controllCam.Checked = true;
+            this.controllCam.Location = new System.Drawing.Point(6, 19);
+            this.controllCam.Name = "controllCam";
+            this.controllCam.Size = new System.Drawing.Size(60, 17);
+            this.controllCam.TabIndex = 0;
+            this.controllCam.TabStop = true;
+            this.controllCam.Text = "camera";
+            this.controllCam.UseVisualStyleBackColor = true;
+            // 
             // zBufferBox
             // 
             this.zBufferBox.AutoSize = true;
@@ -95,9 +143,9 @@ partial class frmHelloCube
             this.xRayBox.AutoSize = true;
             this.xRayBox.Location = new System.Drawing.Point(6, 57);
             this.xRayBox.Name = "xRayBox";
-            this.xRayBox.Size = new System.Drawing.Size(48, 17);
+            this.xRayBox.Size = new System.Drawing.Size(71, 17);
             this.xRayBox.TabIndex = 3;
-            this.xRayBox.Text = "x-ray";
+            this.xRayBox.Text = "wireframe";
             this.xRayBox.UseVisualStyleBackColor = true;
             this.xRayBox.CheckedChanged += new System.EventHandler(this.xRayBox_CheckedChanged);
             // 
@@ -181,54 +229,6 @@ partial class frmHelloCube
             this.label1.TabIndex = 0;
             this.label1.Text = "stacks";
             // 
-            // controlls
-            // 
-            this.controlls.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.controlls.Controls.Add(this.controllCube);
-            this.controlls.Controls.Add(this.controllSphere);
-            this.controlls.Controls.Add(this.controllCam);
-            this.controlls.ForeColor = System.Drawing.Color.White;
-            this.controlls.Location = new System.Drawing.Point(7, 104);
-            this.controlls.Name = "controlls";
-            this.controlls.Size = new System.Drawing.Size(67, 96);
-            this.controlls.TabIndex = 5;
-            this.controlls.TabStop = false;
-            this.controlls.Text = "Controlls";
-            // 
-            // controllCam
-            // 
-            this.controllCam.AutoSize = true;
-            this.controllCam.Checked = true;
-            this.controllCam.Location = new System.Drawing.Point(6, 19);
-            this.controllCam.Name = "controllCam";
-            this.controllCam.Size = new System.Drawing.Size(60, 17);
-            this.controllCam.TabIndex = 0;
-            this.controllCam.TabStop = true;
-            this.controllCam.Text = "camera";
-            this.controllCam.UseVisualStyleBackColor = true;
-            // 
-            // controllSphere
-            // 
-            this.controllSphere.AutoSize = true;
-            this.controllSphere.Location = new System.Drawing.Point(6, 42);
-            this.controllSphere.Name = "controllSphere";
-            this.controllSphere.Size = new System.Drawing.Size(59, 17);
-            this.controllSphere.TabIndex = 1;
-            this.controllSphere.TabStop = true;
-            this.controllSphere.Text = "Sphere";
-            this.controllSphere.UseVisualStyleBackColor = true;
-            // 
-            // controllCube
-            // 
-            this.controllCube.AutoSize = true;
-            this.controllCube.Location = new System.Drawing.Point(6, 66);
-            this.controllCube.Name = "controllCube";
-            this.controllCube.Size = new System.Drawing.Size(49, 17);
-            this.controllCube.TabIndex = 2;
-            this.controllCube.TabStop = true;
-            this.controllCube.Text = "cube";
-            this.controllCube.UseVisualStyleBackColor = true;
-            // 
             // frmHelloCube
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -241,6 +241,7 @@ partial class frmHelloCube
             this.Shown += new System.EventHandler(this.frmHelloCube_Shown);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.frmHelloCube_Paint);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmHelloCube_KeyDown);
+            this.KeyUp += new System.Windows.Forms.KeyEventHandler(this.frmHelloCube_KeyUp);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.frmHelloCube_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.frmHelloCube_MouseMove);
             this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.frmHelloCube_MouseUp);
@@ -248,12 +249,12 @@ partial class frmHelloCube
             this.Resize += new System.EventHandler(this.frmHelloCube_Resize);
             this.controlBox.ResumeLayout(false);
             this.controlBox.PerformLayout();
+            this.controlls.ResumeLayout(false);
+            this.controlls.PerformLayout();
             this.circleControll.ResumeLayout(false);
             this.circleControll.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.slicesUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.stackUpDown)).EndInit();
-            this.controlls.ResumeLayout(false);
-            this.controlls.PerformLayout();
             this.ResumeLayout(false);
 
    }

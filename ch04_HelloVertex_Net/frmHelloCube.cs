@@ -15,11 +15,9 @@ public partial class frmHelloCube : Form
     private SLMat4f   m_projectionMatrix;  // projection matrix
     private SLMat4f   m_viewportMatrix;    // viewport matrix
     private SLMat4f   m_rotationMatrix;
-    private SLVec3f[] m_v;                 // array for vertices for the cube
     private SLVec3f   preTrackBallVec;         //trackball start
     private SLVec3f   currTrackBallVec;       // current position on track ball
     private SLVec3f   m_cam;
-    private SLVec3f   old_cam;
     private float     m_camZ;              // z-distance of camera
     private float     m_rotAngleUp;          // angle of cube rotation
     private float     m_rotAngleSide;          // angle of cube rotation
@@ -28,6 +26,7 @@ public partial class frmHelloCube : Form
     private SLVec3f   m_rotAxis;           // for the trackball
     private SLVec3f   add_rotAxis;
     private float     tForce;
+    private float     scrollForce = 200.0f;
     private SLVec3f preCursorPosition;
     private SLVec3f cursorPosition;
     private bool isDown;
@@ -36,7 +35,7 @@ public partial class frmHelloCube : Form
     private SLVec3f front, back, left, right, top, bottom;
     private SLLight light;
     private bool phongActive;
-    private bool xRayActive;
+    private bool xWireframeActive;
     private bool zShowActive;
     private Stopwatch sw;
     private TimeSpan second;
@@ -74,7 +73,7 @@ public partial class frmHelloCube : Form
 
         light = new SLLight();
         phongActive = false;
-        xRayActive = false;
+        xWireframeActive = false;
         m_camZ = -5.5f;      // backwards movement of the camera
 
         m_cam = new SLVec3f(0, 0, m_camZ);
@@ -99,8 +98,17 @@ public partial class frmHelloCube : Form
         // buildSphere(1.5f, 15, 15, ref slVertices, ref vNeighbour);
         //mesh = new Sphere(1.5f, 15, 15);
         meshes = new List<Mesh>();
-        meshes.Add(new Cube(1f));
-        meshes.Add(new Sphere(1.5f, 15, 15));
+        Cube c1 = new Cube(1f);
+        c1.modelMatrix.Translate(-.5f, 0, 0);
+        c1.color = colorBlue;
+
+        Sphere s1 = new Sphere(1.5f, 15, 15);
+        s1.modelMatrix.Translate(.5f, 0, 0);
+        s1.color = colorGreen;
+
+
+        meshes.Add(c1);
+        meshes.Add(s1);
 
         // Without double buffering it would flicker
         this.DoubleBuffered = true;
@@ -140,13 +148,14 @@ public partial class frmHelloCube : Form
                                 0, 1);
         // TODO söt eigentlech 3 si u ni 1.3 :(
         // (-2 * f * n) / (f - n)
-        zBuffer = new ZBuffer(ClientRectangle.Width, ClientRectangle.Height, 1.0f, 1.3f);
+        zBuffer = new ZBuffer(ClientRectangle.Width, ClientRectangle.Height, 1.0f, 1.35f);
 
         m_cam = m_rotationMatrix * m_cam;
-     
+        controlBox.Update();
         this.Invalidate();
         
     }
+
 
     /// <summary>
     /// The forms paint routine where all drawing happens.
@@ -184,21 +193,23 @@ public partial class frmHelloCube : Form
         {
 
             bmpGraphics.phong = phongActive;
-            bmpGraphics.xRay = xRayActive;
+            bmpGraphics.wireframe = xWireframeActive;
             bmpGraphics.showZ = zShowActive;
   
             // ball.draw(bmpGraphics, m_cam);
 
 
 
-            for (int o = 0; o < meshes.Count; o++)
+            for (int m = 0; m < meshes.Count; m++)
             {
 
                 SLMat4f mv = new SLMat4f(m_viewMatrix);
-                mv.Multiply(meshes[o].m_modelMatrix);
+                mv.Multiply(meshes[m].modelMatrix);
+
                 SLMat3f nm = new SLMat3f(mv.InverseTransposed());
 
                 List<SLVertex> vertex2 = new List<SLVertex>();
+
                 // build combined matrix out of viewport, projection & modelview matrix
                 SLMat4f mvp = new SLMat4f();
                 mvp.Multiply(m_viewportMatrix); // screen
@@ -208,18 +219,18 @@ public partial class frmHelloCube : Form
                 // transform all vertices into screen space (x & y in pixels and z as the depth) 
                 // TODO keine array sondern liste machen!
 
-                for (int n = 0; n < meshes[o].vertices.Length; n++)
+                for (int n = 0; n < meshes[m].vertices.Length; n++)
                 {
 
 
-                    vertex2.Add(new SLVertex(mvp.Multiply(meshes[o].vertices[n].position),
-                                              nm.Multiply(meshes[o].vertices[n].normale),
-                                              meshes[o].color,
-                                              mv.Multiply(meshes[o].vertices[n].position)));
+                    vertex2.Add(new SLVertex(mvp.Multiply(meshes[m].vertices[n].position),
+                                              nm.Multiply(meshes[m].vertices[n].normale),
+                                              meshes[m].color,
+                                              mv.Multiply(meshes[m].vertices[n].position)));
                 
                 }
 
-                drawVertex(vertex2, meshes[o].indices, bmpGraphics);
+                drawVertices(vertex2, meshes[m].indices,m_cam, bmpGraphics);
 
             }
             g.DrawImageUnscaled(bmpGraphics.Result(), 0, 0);
@@ -282,13 +293,9 @@ public partial class frmHelloCube : Form
     /// <summary>Handles the mouse wheel event</summary>
     private void frmHelloCube_MouseWheel(object sender, MouseEventArgs e)
    {
-        m_camZ += e.Delta / 200.0f;
+        m_camZ += e.Delta / scrollForce;
         // Console.WriteLine(e.Delta / 200.0f);
-        if(m_camZ > -3)
-        {
-            m_camZ = -3;
-        }
-        m_cam.z = m_camZ;
+        transformActive(0, 0, e.Delta / scrollForce);
 
     }
 
@@ -344,12 +351,12 @@ public partial class frmHelloCube : Form
         return (value / max) * 180;
     }
 
-    private void drawVertex(List<SLVertex> vertex, int[] indices, BmpG bmp)
+    private void drawVertices(List<SLVertex> vertex, int[] indices,SLVec3f cam, BmpG bmp)
     {
         for (int i = 0; i < indices.Length; i += 3)
         {
             SLVec3f face = SLVec3f.CrossProduct((vertex[indices[i + 1]].position - vertex[indices[i]].position), (vertex[indices[i + 2]].position - vertex[indices[i]].position));
-            if (SLVec3f.DotProduct(face, m_cam) >= 0 || xRayActive)
+            if (SLVec3f.DotProduct(face, cam) >= 0 || xWireframeActive)
             {
                 bmp.DrawPolygon(vertex[indices[i]], vertex[indices[i + 1]], vertex[indices[i + 2]]);
             }
@@ -376,10 +383,17 @@ public partial class frmHelloCube : Form
     {
         if(meshes.Count > 1)
         {
+            Mesh oldMesh = meshes[1];
             meshes[1] = new Sphere(1.5f, (int)stackUpDown.Value, (int)slicesUpDown.Value);
-        }else
+            meshes[1].color = oldMesh.color;
+            meshes[1].modelMatrix = oldMesh.modelMatrix;
+        }
+        else
         {
+            Mesh oldMesh = meshes[0];
             meshes[0] = new Sphere(1.5f, (int)stackUpDown.Value, (int)slicesUpDown.Value);
+            meshes[0].color = oldMesh.color;
+            meshes[0].modelMatrix = oldMesh.modelMatrix;
         }
 
 
@@ -402,6 +416,16 @@ public partial class frmHelloCube : Form
         fps++;
     }
 
+    private void frmHelloCube_KeyUp(object sender, KeyEventArgs e)
+    {
+        if(e.KeyCode == Keys.ShiftKey)
+        {
+            scrollForce = 200.0f;
+        }
+    }
+
+
+
     private void zBufferBox_CheckedChanged(object sender, EventArgs e)
     {
         zShowActive = zBufferBox.Checked;
@@ -418,16 +442,19 @@ public partial class frmHelloCube : Form
         switch(e.KeyCode)
         {
             case (Keys.S):
-                transformActive(0,-tForce);
+                transformActive(0,-tForce,0);
                 break;
             case (Keys.W):
-                transformActive(0, tForce);
+                transformActive(0, tForce, 0);
                 break;
             case (Keys.A):
-                transformActive(-tForce,0);
+                transformActive(-tForce,0, 0);
                 break;
             case (Keys.D):
-                transformActive(tForce, 0);
+                transformActive(tForce, 0, 0);
+                break;
+            case (Keys.ShiftKey):
+                scrollForce = 1000.0f;
                 break;
             default:
                 break;
@@ -438,27 +465,32 @@ public partial class frmHelloCube : Form
     }
 
 
-    private void transformActive( float x, float y)
+    private void transformActive( float x, float y, float z)
     {
 
         if (controllCam.Checked)
         {
             m_cam.y += y;
             m_cam.x += x;
+            if(m_camZ > -3)
+            {
+                z = -3;
+            }
+            m_cam.z += z;
             return;
         }
         if(controllSphere.Checked)
         {
             if(meshes.Count > 1)
             {
-                meshes[1].m_modelMatrix.Translate(x, y, 0);
+                meshes[1].modelMatrix.Translate(x, y, z);
                 return;
             }
 
         }
         if(controllCube.Checked)
         {
-            meshes[0].m_modelMatrix.Translate(x, y, 0);
+            meshes[0].modelMatrix.Translate(x, y, z);
             return;
         }
     }
@@ -466,8 +498,8 @@ public partial class frmHelloCube : Form
 
     private void xRayBox_CheckedChanged(object sender, EventArgs e)
     {
-        xRayActive = xRayBox.Checked;
-        if(xRayActive)
+        xWireframeActive = xRayBox.Checked;
+        if(xWireframeActive)
         {
             light.diffuse *= 10;
         }else

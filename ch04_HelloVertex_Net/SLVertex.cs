@@ -63,8 +63,8 @@ namespace ch03_HelloCube_Net
             {
                 this.normale.Normalize();
             }
-
-            return checkColor(spiegel(light) + difuse(light)) *255;
+            SLVec3f c = spiegel(light) + difuse(light);
+            return checkColor(c) *255;
         }
 
         public SLVec3f difuse(SLLight light)
@@ -84,7 +84,7 @@ namespace ch03_HelloCube_Net
 
         private SLVec3f checkColor(SLVec3f c)
         {
-            return new SLVec3f(Math.Min(c.x, 1), Math.Min(c.z, 1), Math.Min(c.z, 1));
+            return new SLVec3f(Math.Min(c.x, 1), Math.Min(c.y, 1), Math.Min(c.z, 1));
         }
 
         public void setColor(SLVec3f c)

@@ -10,14 +10,23 @@ namespace ch03_HelloCube_Net
         public SLVertex[]  vertices;
         public int[]       indices;
         public SLVec3f     color;
-        public SLMat4f  m_modelMatrix;
+        public SLMat4f  modelMatrix;
         public Mesh(int vSize, int iSize)
         {
             vertices = new SLVertex[vSize];
             indices = new int[iSize];
-            color = new SLVec3f(255, 0, 0);
-            m_modelMatrix = new SLMat4f();
+            color = new SLVec3f();
+            modelMatrix = new SLMat4f();
         }
+
+        public Mesh(int vSize, int iSize, SLVec3f color)
+        {
+            vertices = new SLVertex[vSize];
+            indices = new int[iSize];
+            this.color = color;
+            modelMatrix = new SLMat4f();
+        }
+
 
 
 

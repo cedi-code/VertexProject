@@ -43,14 +43,14 @@
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="ch03_HelloCube_Net.exe" size="247728">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="ch03_HelloCube_Net.exe" size="248240">
       <assemblyIdentity name="ch03_HelloCube_Net" version="1.0.0.0" language="neutral" processorArchitecture="amd64" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
-        <dsig:DigestValue>q59JMu6S7FDIpKPPnHqHg2ablG8=</dsig:DigestValue>
+        <dsig:DigestValue>aMP0GUPnmBy0wRPAWiac73P7Zyo=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

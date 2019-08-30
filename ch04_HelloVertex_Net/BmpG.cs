@@ -19,7 +19,7 @@ namespace ch03_HelloCube_Net
         private ZBuffer zB;
         private SLLight light;
         public bool phong = false;
-        public bool xRay = false;
+        public bool wireframe = false;
         public bool showZ = false;
         #endregion
 
@@ -535,7 +535,7 @@ namespace ch03_HelloCube_Net
             DrawPrimitives(v0, v1, v2, ref allPrimitves);
 
 
-            if (!xRay) // (allPrimitves.Count < 2) 
+            if (!wireframe) // (allPrimitves.Count < 2) 
             {
                 FillInPrimitives(v0, v1, v2, allPrimitves);
             }
