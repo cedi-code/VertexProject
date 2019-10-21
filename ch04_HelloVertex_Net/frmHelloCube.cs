@@ -9,41 +9,41 @@ using System.Collections.Generic;
 
 public partial class frmHelloCube : Form
 {
-   #region Members
-    private SLMat4f   m_viewMatrix;        // view matrix
-    private SLMat4f   m_projectionMatrix;  // projection matrix
-    private SLMat4f   m_viewportMatrix;    // viewport matrix
-    private SLMat4f   m_rotationMatrix;
-    private SLVec3f   m_cam;
-    private float     m_camZ;              // z-distance of camera
-    private float     m_rotAngleUp;          // angle of cube rotation
-    private float     m_rotAngleSide;          // angle of cube rotation
-    private SLVec3f   add_rotAxis;
-    private float     tForce;
-    private float     scrollForce = 200.0f;
-    private SLVec3f preCursorPosition;
-    private SLVec3f cursorPosition;
-    private bool isDown;
-    private ZBuffer zBuffer;
-    private List<Mesh> meshes;
-    private SLLight light;
-    private bool phongActive;
-    private bool xWireframeActive;
-    private bool zShowActive;
-    private Stopwatch sw;
-    private TimeSpan second;
-    private float fps;
+    #region Members
+    private SLMat4f     m_viewMatrix;       // view matrix
+    private SLMat4f     m_projectionMatrix; // projection matrix
+    private SLMat4f     m_viewportMatrix;   // viewport matrix
+    private SLMat4f     m_rotationMatrix;
+    private SLVec3f     m_cam;
+    private float       m_camZ;             // z-distance of camera
+    private float       m_rotAngleUp;       // angle of cube rotation
+    private float       m_rotAngleSide;     // angle of cube rotation
+    private SLVec3f     add_rotAxis;
+    private float       tForce;
+    private float       scrollForce = 200.0f;
+    private SLVec3f     preCursorPosition;
+    private SLVec3f     cursorPosition;
+    private bool        isDown;
+    private ZBuffer     zBuffer;
+    private List<Mesh>  meshes;
+    private SLLight     light;
+    private bool        phongActive;
+    private bool        xWireframeActive;
+    private bool        zShowActive;
+    private Stopwatch   sw;
+    private TimeSpan    second;
+    private float       fps;
 
-    private SLVec3f colorGreen = new SLVec3f(0, 255, 0);
-    private SLVec3f colorBlue = new SLVec3f(0, 0, 255);
-    private SLVec3f colorRed = new SLVec3f(255, 0, 0);
+    private SLVec3f     colorGreen = new SLVec3f(0, 255, 0);
+    private SLVec3f     colorBlue = new SLVec3f(0, 0, 255);
+    private SLVec3f     colorRed = new SLVec3f(255, 0, 0);
 
-    private SLVec3f colorLightBlue = new SLVec3f(0, 255, 255);
-    private SLVec3f colorViolet = new SLVec3f(255, 0, 255);
-    private SLVec3f colorYellow = new SLVec3f(255, 255, 0);
+    private SLVec3f     colorLightBlue = new SLVec3f(0, 255, 255);
+    private SLVec3f     colorViolet = new SLVec3f(255, 0, 255);
+    private SLVec3f     colorYellow = new SLVec3f(255, 255, 0);
 
-    private SLVec3f colorWhite = new SLVec3f(255, 255, 255);
-    private SLVec3f colorBlack = new SLVec3f(0, 0, 0);
+    private SLVec3f     colorWhite = new SLVec3f(255, 255, 255);
+    private SLVec3f     colorBlack = new SLVec3f(0, 0, 0);
 
 
 
@@ -56,38 +56,37 @@ public partial class frmHelloCube : Form
     public frmHelloCube()
     {
         // Create matrices
-        m_viewMatrix       = new SLMat4f();
-        m_projectionMatrix = new SLMat4f();
-        m_viewportMatrix   = new SLMat4f();
-        m_rotationMatrix   = new SLMat4f();
+        m_viewMatrix        = new SLMat4f();
+        m_projectionMatrix  = new SLMat4f();
+        m_viewportMatrix    = new SLMat4f();
+        m_rotationMatrix    = new SLMat4f();
  
 
-        light = new SLLight();
-        phongActive = false;
-        xWireframeActive = false;
-        m_camZ = -5.5f;      // backwards movement of the camera
+        light               = new SLLight();
+        phongActive         = false;
+        xWireframeActive    = false;
+        m_camZ              = -5.5f;      // backwards movement of the camera
+        m_cam               = new SLVec3f(0, 0, m_camZ);
 
-        m_cam = new SLVec3f(0, 0, m_camZ);
-
-        add_rotAxis = new SLVec3f();
+        add_rotAxis         = new SLVec3f();
         tForce = 0.1f;
-        preCursorPosition = new SLVec3f();
-        cursorPosition = new SLVec3f();
+        preCursorPosition   = new SLVec3f();
+        cursorPosition      = new SLVec3f();
 
-        sw = new Stopwatch();
+        sw                  = new Stopwatch();
         sw.Start();
-        second = new TimeSpan(0, 0, 1);
-        fps = 0;
+        second              = new TimeSpan(0, 0, 1);
+        fps                 = 0;
 
 
-        meshes = new List<Mesh>();
-        Cube c1 = new Cube(1f);
+        meshes              = new List<Mesh>();
+        Cube c1             = new Cube(1f);
         c1.modelMatrix.Translate(-.5f, 0, 0);
-        c1.color = colorGreen;
+        c1.color            = colorGreen;
 
-        Sphere s1 = new Sphere(1.5f, 15, 15);
+        Sphere s1           = new Sphere(1.5f, 15, 15);
         s1.modelMatrix.Translate(.5f, 0, 0);
-        s1.color = colorRed;
+        s1.color            = colorRed;
 
         meshes.Add(c1);
         meshes.Add(s1);
@@ -103,7 +102,7 @@ public partial class frmHelloCube : Form
     /// </summary>
     private void frmHelloCube_Load(object sender, EventArgs e)
    {  
-        this.Text = "Hello Cube with .NET";
+        this.Text       = "Hello Cube with .NET";
         Console.WriteLine("");
         Console.WriteLine("--------------------------------------------------------------");
         Console.WriteLine("Spinning cube without with .Net ...");
