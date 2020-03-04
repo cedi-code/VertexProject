@@ -16,3 +16,4 @@ F:\github\_bin-Release-x64\ch03_HelloCube_Net.exe.manifest
 F:\github\_bin-Release-x64\ch03_HelloCube_Net.application
 F:\github\VertexProject\ch04_HelloVertex_Net\obj\x64\Release\ch03_HelloCube_Net.exe.manifest
 F:\github\VertexProject\ch04_HelloVertex_Net\obj\x64\Release\ch03_HelloCube_Net.application
+F:\github\VertexProject\ch04_HelloVertex_Net\obj\x64\Release\ch03_HelloVertex_Net.csprojAssemblyReference.cache
